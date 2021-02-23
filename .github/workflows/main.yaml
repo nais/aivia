@@ -4,7 +4,7 @@ on:
     branches:
     - "main"
 env:
-  "IMAGE": "ghcr.io/${{ github.repository }}:${{ github.sha }}"
+  "BASEIMAGE": "ghcr.io/${{ github.repository }}"
 jobs:
   build:
     name: "build"
@@ -22,6 +22,8 @@ jobs:
         "java-version": "15"
     - name: "compile and run tests"
       run: "./gradlew build"
+    - name: "Set image version"
+      run: echo "IMAGE=${BASEIMAGE}:$(date +%Y%m%d%H%M%S)-$(git describe --always --dirty --exclude '*')" >> $GITHUB_ENV
     - name: "Build and publish Docker image"
       run: "docker build --pull --tag ${IMAGE} . && echo $GITHUB_TOKEN | docker login\
         \ --username $GITHUB_REPOSITORY --password-stdin https://ghcr.io\
