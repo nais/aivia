@@ -2,9 +2,8 @@ package io.nais.aivvia
 
 import io.ktor.application.*
 import io.ktor.metrics.micrometer.*
-import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.server.netty.EngineMain
+import io.ktor.server.netty.*
 import io.micrometer.core.instrument.Clock
 import io.micrometer.core.instrument.binder.jvm.ClassLoaderMetrics
 import io.micrometer.core.instrument.binder.jvm.JvmGcMetrics
