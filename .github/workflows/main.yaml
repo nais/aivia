@@ -4,7 +4,7 @@ on:
     branches:
     - "main"
 env:
-  "IMAGE": "docker.pkg.github.com/${{ github.repository }}/aivvia:${{ github.sha }}"
+  "IMAGE": "ghcr.io/${{ github.repository }}:${{ github.sha }}"
 jobs:
   build:
     name: "build"
@@ -28,29 +28,3 @@ jobs:
         \ && docker push ${IMAGE}"
       env:
         "GITHUB_TOKEN": "${{ secrets.GITHUB_TOKEN }}"
-  deployToDev:
-    name: "Deploy to dev"
-    needs: "build"
-    runs-on: "ubuntu-latest"
-    steps:
-    - uses: "actions/checkout@v2"
-    - name: "Deploy to dev-gcp"
-      uses: "nais/deploy/actions/deploy@v1"
-      env:
-        "APIKEY": "${{ secrets.NAIS_DEPLOY_APIKEY }}"
-        "CLUSTER": "dev-gcp"
-        "RESOURCE": ".nais/nais.yaml"
-        "VARS": ".nais/dev.yaml"
-  deployToProd:
-    name: "Deploy to prod"
-    needs: "deployToDev"
-    runs-on: "ubuntu-latest"
-    steps:
-    - uses: "actions/checkout@v2"
-    - name: "Deploy to prod-gcp"
-      uses: "nais/deploy/actions/deploy@v1"
-      env:
-        "APIKEY": "${{ secrets.NAIS_DEPLOY_APIKEY }}"
-        "CLUSTER": "prod-gcp"
-        "RESOURCE": ".nais/nais.yaml"
-        "VARS": ".nais/prod.yaml"
