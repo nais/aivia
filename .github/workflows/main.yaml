@@ -24,7 +24,7 @@ jobs:
       run: "./gradlew build"
     - name: "Build and publish Docker image"
       run: "docker build --pull --tag ${IMAGE} . && echo $GITHUB_TOKEN | docker login\
-        \ --username $GITHUB_REPOSITORY --password-stdin https://docker.pkg.github.com\
+        \ --username $GITHUB_REPOSITORY --password-stdin https://ghcr.io\
         \ && docker push ${IMAGE}"
       env:
         "GITHUB_TOKEN": "${{ secrets.GITHUB_TOKEN }}"
