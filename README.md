@@ -34,3 +34,17 @@ data:
     aapen-data-v2 = nais.data-v2
     privat-hemmelig-saa-det-saa = nais.hemmelig-v2
 ```
+
+What does this do?
+------------------
+
+AiviA guarantees the following:
+
+- At-least-once delivery of all messages present in the source topic.
+- Preservation of message ordering if using the default partitioning strategy.
+- Propagation of keys present in messages from the source topic.
+
+AiviA _does not_ guarantee the following:
+
+- Prompt delivery of messages.
+- Preservation of offsets. Your application should ideally handle messages idempotently.
