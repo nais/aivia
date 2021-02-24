@@ -1,4 +1,4 @@
-package io.nais.aivvia
+package io.nais.aivia
 
 import io.ktor.application.call
 import io.ktor.http.ContentType

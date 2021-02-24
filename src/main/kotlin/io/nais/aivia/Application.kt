@@ -1,4 +1,4 @@
-package io.nais.aivvia
+package io.nais.aivia
 
 import io.ktor.application.*
 import io.ktor.metrics.micrometer.*

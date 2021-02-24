@@ -1,10 +1,9 @@
-package io.nais.aivvia
+package io.nais.aivia
 
 import no.nav.common.KafkaEnvironment
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.TestInstance.*
 import org.junit.jupiter.api.TestInstance.Lifecycle.*
 
 @TestInstance(PER_CLASS)

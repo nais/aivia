@@ -1,4 +1,4 @@
-name: "Build and deploy aivvia"
+name: "Build and deploy aivia"
 on:
   push:
     branches:
