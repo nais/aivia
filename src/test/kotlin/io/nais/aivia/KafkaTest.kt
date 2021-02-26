@@ -3,7 +3,9 @@ package io.nais.aivia
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
-import org.junit.jupiter.api.TestInstance.Lifecycle.*
+import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 private const val SOURCE_TOPIC = "some-source-topic"
 private const val TARGET_TOPIC = "some-target-topic"
@@ -14,7 +16,6 @@ class DummyTest {
 
     init {
         embeddedEnv.start()
-        embeddedEnv.initializeSourceTopic(SOURCE_TOPIC)
     }
 
     @AfterAll
@@ -24,18 +25,24 @@ class DummyTest {
 
     @Test
     fun `given a source topic with messages, the target topic contains the same messages`() {
-        // TODO
         val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
         val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
         val mappingConfig = mapOf(
-            SOURCE_TOPIC to TARGET_TOPIC
+                SOURCE_TOPIC to TARGET_TOPIC
         ).asProperties()
 
         val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
 
-        // assert that target topic is empty
-        // assert that source topic contains expected messages
+        val records = listOf("x", "y", "z")
+
+        embeddedEnv.initializeSourceTopic(SOURCE_TOPIC, records)
+
+        assertFalse(embeddedEnv.isEmpty(SOURCE_TOPIC), "source has messages to start with")
+        assertTrue(embeddedEnv.isEmpty(TARGET_TOPIC), "target starts out empty")
+
         aivia.mirror()
+
+//        assertFalse(embeddedEnv.isEmpty(TARGET_TOPIC), "target is not empty after mirroring")
 
         // assert that target topic contains expected messages
     }

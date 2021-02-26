@@ -4,22 +4,27 @@ import no.nav.common.JAASCredential
 import no.nav.common.KafkaEnvironment
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.common.config.SaslConfigs
+import org.apache.kafka.common.serialization.BytesDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
-import java.util.Properties
+import org.apache.kafka.common.utils.Bytes
+import java.time.Duration
+import java.time.temporal.ChronoUnit
+import java.util.*
+import kotlin.collections.HashMap
 
 internal const val username = "some-username"
 internal const val password = "some-password"
 
 object KafkaWrapper {
     fun bootstrap(topicNames: List<String>): KafkaEnvironment = KafkaEnvironment(
-        users = listOf(JAASCredential(username, password)),
-        autoStart = true,
-        withSchemaRegistry = false,
-        withSecurity = false, // TODO should get this working
-        topicNames = topicNames,
+            users = listOf(JAASCredential(username, password)),
+            autoStart = true,
+            withSchemaRegistry = false,
+            withSecurity = false, // TODO should get this working
+            topicNames = topicNames,
     )
 }
 
@@ -35,14 +40,33 @@ internal fun KafkaEnvironment.testClientProperties(): MutableMap<String, Any> {
         )
         */
         put(ConsumerConfig.GROUP_ID_CONFIG, "nais-group")
+        put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
     }
 }
 
-internal fun KafkaEnvironment.initializeSourceTopic(name: String) {
-    val producer = KafkaProducer(testClientProperties(), StringSerializer(), StringSerializer())
-    producer.send(ProducerRecord(name, "some-value"))
-    producer.send(ProducerRecord(name, "some-other-value"))
-    producer.send(ProducerRecord(name, "another-value"))
+internal fun KafkaEnvironment.isEmpty(topicName: String): Boolean {
+    val consumer = KafkaConsumer(this.testClientProperties(), BytesDeserializer(), BytesDeserializer())
+    consumer.subscribe(listOf(topicName))
+
+    // TODO(jhrv): for some reason unbeknownst to me, we have to try a couple of times before records show up. This is probably not right.
+    for (i in 1..5) {
+        val records = consumer.poll(Duration.of(100, ChronoUnit.MILLIS))
+        if (!records.isEmpty) {
+            return false
+        }
+
+        Thread.sleep(1000)
+    }
+
+    return true
+}
+
+internal fun KafkaEnvironment.initializeSourceTopic(name: String, records: List<String>) {
+    val clientProperties = testClientProperties()
+    val producer = KafkaProducer(clientProperties, StringSerializer(), StringSerializer())
+    records.forEach { e ->
+        producer.send(ProducerRecord(name, e))
+    }
     producer.flush()
 }
 

@@ -1,7 +1,6 @@
 package io.nais.aivia
 
 import io.ktor.config.ApplicationConfig
-import kotlinx.coroutines.time.delay
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -18,9 +17,9 @@ import java.time.temporal.ChronoUnit
 import java.util.Properties
 
 class Aivia(
-    sourceKafkaConfig: Properties,
-    targetKafkaConfig: Properties,
-    private val mappingConfig: Properties
+        sourceKafkaConfig: Properties,
+        targetKafkaConfig: Properties,
+        private val mappingConfig: Properties
 ) {
     private val consumer = KafkaConsumer(sourceKafkaConfig, ByteArrayDeserializer(), ByteArrayDeserializer())
     private val producer = KafkaProducer(targetKafkaConfig, ByteArraySerializer(), ByteArraySerializer())
@@ -31,11 +30,12 @@ class Aivia(
         while (true) { // TODO - should have an exit condition
             val records = consumer.poll(Duration.of(100, ChronoUnit.MILLIS))
             records.asSequence()
-                .forEach { r ->
-                    val sourceTopic: String = r.topic()
-                    val targetTopic: String = mappingConfig[sourceTopic] as String
-                    producer.send(ProducerRecord(targetTopic, r.key(), r.value()))
-                }
+                    .forEach { r ->
+                        val sourceTopic: String = r.topic()
+                        val targetTopic: String = mappingConfig[sourceTopic] as String
+
+                        producer.send(ProducerRecord(targetTopic, r.key(), r.value()))
+                    }
             consumer.commitSync(Duration.ofSeconds(2))
             break
         }
@@ -44,7 +44,8 @@ class Aivia(
 
 fun kafkaConfigFrom(config: ApplicationConfig, serviceUser: ServiceUser? = null): Properties {
     return Properties().apply {
-        put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, config.propertyOrNull("kafka.brokers")?.getString() ?: "localhost:9092")
+        put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, config.propertyOrNull("kafka.brokers")?.getString()
+                ?: "localhost:9092")
         put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java)
         put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java)
         put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
