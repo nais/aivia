@@ -1,6 +1,5 @@
 package io.nais.aivia
 
-import kotlinx.coroutines.runBlocking
 import no.nav.common.KafkaEnvironment
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
@@ -36,17 +35,16 @@ class KafkaTest {
         val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
         val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
         val mappingConfig = mapOf(
-            SOURCE_TOPIC to TARGET_TOPIC
+                SOURCE_TOPIC to TARGET_TOPIC
         ).asProperties()
 
         val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
 
         val records = listOf("x", "y", "z")
-
         embeddedEnv.initializeSourceTopic(SOURCE_TOPIC, records)
 
-        //assertIsNotEmpty(SOURCE_TOPIC) // source has messages to start with
-        //assertIsEmpty(TARGET_TOPIC)
+        assertIsNotEmpty(SOURCE_TOPIC) // source has messages to start with
+        assertIsEmpty(TARGET_TOPIC)
 
         aivia.mirror()
 
@@ -54,13 +52,6 @@ class KafkaTest {
         // assert that target topic contains expected messages
     }
 
-
-
-    private fun assertIsNotEmpty(topic: String) {
-        assertFalse(embeddedEnv.isEmpty(topic), "topic should contain records")
-    }
-
-    private fun assertIsEmpty(topic: String) {
-        assertTrue(embeddedEnv.isEmpty(topic), "topic should not contain records")
-    }
+    val assertIsNotEmpty = { topic: String -> assertFalse(embeddedEnv.isEmpty(topic), "topic contains records") }
+    val assertIsEmpty = { topic: String -> assertTrue(embeddedEnv.isEmpty(topic), "topic is empty") }
 }

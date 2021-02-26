@@ -48,7 +48,7 @@ internal fun KafkaEnvironment.isEmpty(topicName: String): Boolean {
     val consumer = KafkaConsumer(this.testClientProperties(), BytesDeserializer(), BytesDeserializer())
     consumer.subscribe(listOf(topicName))
     for(i in 1..30) {
-        val records = consumer.poll(Duration.of(5000, ChronoUnit.MILLIS))
+        val records = consumer.poll(Duration.of(30000, ChronoUnit.MILLIS))
         if (!records.isEmpty) {
             return false
         }
