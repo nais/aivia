@@ -33,25 +33,34 @@ class KafkaTest {
 
     @Test
     fun `given a source topic with messages, the target topic contains the same messages`() {
+        val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
+        val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
+        val mappingConfig = mapOf(
+            SOURCE_TOPIC to TARGET_TOPIC
+        ).asProperties()
 
-            val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
-            val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
-            val mappingConfig = mapOf(
-                SOURCE_TOPIC to TARGET_TOPIC
-            ).asProperties()
+        val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
 
-            val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
+        val records = listOf("x", "y", "z")
 
-            val records = listOf("x", "y", "z")
+        embeddedEnv.initializeSourceTopic(SOURCE_TOPIC, records)
 
-            embeddedEnv.initializeSourceTopic(SOURCE_TOPIC, records)
+        //assertIsNotEmpty(SOURCE_TOPIC) // source has messages to start with
+        //assertIsEmpty(TARGET_TOPIC)
 
-            assertFalse(embeddedEnv.isEmpty(SOURCE_TOPIC), "source has messages to start with")
-            assertTrue(embeddedEnv.isEmpty(TARGET_TOPIC), "target starts out empty")
+        aivia.mirror()
 
-            //aivia.mirror()
-
-            //assertFalse(embeddedEnv.isEmpty(TARGET_TOPIC), "target is not empty after mirroring")
+        assertIsNotEmpty(TARGET_TOPIC)
         // assert that target topic contains expected messages
+    }
+
+
+
+    private fun assertIsNotEmpty(topic: String) {
+        assertFalse(embeddedEnv.isEmpty(topic), "topic should contain records")
+    }
+
+    private fun assertIsEmpty(topic: String) {
+        assertTrue(embeddedEnv.isEmpty(topic), "topic should not contain records")
     }
 }

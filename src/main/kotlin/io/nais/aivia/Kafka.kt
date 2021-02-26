@@ -27,15 +27,18 @@ class Aivia(
     fun mirror() {
         val sourceTopics = mappingConfig.keys.map { it.toString() }.toList()
         consumer.subscribe(sourceTopics)
+        var counter = 0
         while (true) { // TODO - should have an exit condition
-            val records = consumer.poll(Duration.of(100, ChronoUnit.MILLIS))
+            val records = consumer.poll(Duration.of(5000, ChronoUnit.MILLIS))
             records.asSequence()
                     .forEach { r ->
                         val sourceTopic: String = r.topic()
                         val targetTopic: String = mappingConfig[sourceTopic] as String
 
                         producer.send(ProducerRecord(targetTopic, r.key(), r.value()))
+                        println("counter: $counter , Writing: ${r.value()}")
                     }
+            producer.flush()
             consumer.commitSync(Duration.ofSeconds(2))
             break
         }
