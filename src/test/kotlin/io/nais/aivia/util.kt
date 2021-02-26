@@ -49,16 +49,8 @@ internal fun KafkaEnvironment.isEmpty(topicName: String): Boolean {
     consumer.subscribe(listOf(topicName))
 
     // TODO(jhrv): for some reason unbeknownst to me, we have to try a couple of times before records show up. This is probably not right.
-    for (i in 1..5) {
-        val records = consumer.poll(Duration.of(100, ChronoUnit.MILLIS))
-        if (!records.isEmpty) {
-            return false
-        }
-
-        Thread.sleep(1000)
-    }
-
-    return true
+    val records = consumer.poll(Duration.of(5000, ChronoUnit.MILLIS))
+    return records.isEmpty
 }
 
 internal fun KafkaEnvironment.initializeSourceTopic(name: String, records: List<String>) {
