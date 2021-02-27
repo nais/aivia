@@ -41,7 +41,7 @@ class KafkaTest {
         val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
 
         val records = listOf("x", "y", "z")
-        embeddedEnv.initializeSourceTopic(SOURCE_TOPIC, records)
+        embeddedEnv.produceToTopic(SOURCE_TOPIC, records)
 
         assertIsNotEmpty(SOURCE_TOPIC) // source has messages to start with
         assertIsEmpty(TARGET_TOPIC)
