@@ -39,7 +39,7 @@ internal fun KafkaEnvironment.testClientProperties(): MutableMap<String, Any> {
             "org.apache.kafka.common.security.plain.PlainLoginModule required username=\"$username\" password=\"$password\";"
         )
         */
-        put(ConsumerConfig.GROUP_ID_CONFIG, "nais-group")
+        put(ConsumerConfig.GROUP_ID_CONFIG, UUID.randomUUID().toString())
         put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
     }
 }
@@ -47,16 +47,14 @@ internal fun KafkaEnvironment.testClientProperties(): MutableMap<String, Any> {
 internal fun KafkaEnvironment.isEmpty(topicName: String): Boolean {
     val consumer = KafkaConsumer(this.testClientProperties(), BytesDeserializer(), BytesDeserializer())
     consumer.subscribe(listOf(topicName))
-    for(i in 1..30) {
-        val records = consumer.poll(Duration.of(5000, ChronoUnit.MILLIS))
-        if (!records.isEmpty) {
-            return false
-        }
+    val records = consumer.poll(Duration.of(10, ChronoUnit.SECONDS))
+    if (!records.isEmpty) {
+        return false
     }
     return true
 }
 
-internal fun KafkaEnvironment.initializeSourceTopic(name: String, records: List<String>) {
+internal fun KafkaEnvironment.produceToTopic(name: String, records: List<String>) {
     val clientProperties = testClientProperties()
     val producer = KafkaProducer(clientProperties, StringSerializer(), StringSerializer())
     records.forEach { e ->

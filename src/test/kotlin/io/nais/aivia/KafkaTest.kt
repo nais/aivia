@@ -1,12 +1,11 @@
 package io.nais.aivia
 
-import kotlinx.coroutines.runBlocking
-import no.nav.common.KafkaEnvironment
+import kotlinx.coroutines.delay
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
-import kotlin.test.assertEquals
+import java.lang.Thread.sleep
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
@@ -26,10 +25,10 @@ class KafkaTest {
         embeddedEnv.tearDown()
     }
 
-    @Test
+/*    @Test
     fun `Kafka-instansen i minnet har blitt startet`() {
         assertEquals(embeddedEnv.serverPark.status, KafkaEnvironment.ServerParkStatus.Started)
-    }
+    } */
 
     @Test
     fun `given a source topic with messages, the target topic contains the same messages`() {
@@ -43,13 +42,16 @@ class KafkaTest {
 
         val records = listOf("x", "y", "z")
 
-        embeddedEnv.initializeSourceTopic(SOURCE_TOPIC, records)
+        embeddedEnv.produceToTopic(SOURCE_TOPIC, records)
 
         //assertIsNotEmpty(SOURCE_TOPIC) // source has messages to start with
         //assertIsEmpty(TARGET_TOPIC)
 
         aivia.mirror()
-
+        while (true) {
+            println("sleeping, brokerUrl: ${embeddedEnv.brokersURL}")
+            sleep(1000)
+        }
         assertIsNotEmpty(TARGET_TOPIC)
         // assert that target topic contains expected messages
     }
