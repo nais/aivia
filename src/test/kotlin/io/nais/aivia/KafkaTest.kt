@@ -35,58 +35,54 @@ class KafkaTest {
 
     @Test
     fun `given a source topic with messages, the target topic contains the same messages`() {
-        runBlocking {
-            val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
-            val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
-            val mappingConfig = mapOf(
-                SOURCE_TOPIC to TARGET_TOPIC
-            ).asProperties()
+        val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
+        val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
+        val mappingConfig = mapOf(
+            SOURCE_TOPIC to TARGET_TOPIC
+        ).asProperties()
 
-            val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
+        val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
 
-            val records = listOf("x", "y", "z")
-            embeddedEnv.produceToTopic(SOURCE_TOPIC, records)
+        val records = listOf("x", "y", "z")
+        embeddedEnv.produceToTopic(SOURCE_TOPIC, records)
 
-            assertIsNotEmpty(SOURCE_TOPIC) // source has messages to start with
-            assertIsEmpty(TARGET_TOPIC)
+        assertIsNotEmpty(SOURCE_TOPIC) // source has messages to start with
+        assertIsEmpty(TARGET_TOPIC)
 
-            val job = co { aivia.mirror() }
+        val job = co { aivia.mirror() }
 
-            // assert that target topic contains expected messages
+        // assert that target topic contains expected messages
 
-            assertContains {
-                return@assertContains embeddedEnv.records(TARGET_TOPIC).containsAll(records)
-            }
-            job.cancel()
+        assertContains {
+            return@assertContains embeddedEnv.records(TARGET_TOPIC).containsAll(records)
         }
+        job.cancel()
     }
 
     @Test
     fun `target topic contains messages published after subscribing`() {
-        runBlocking {
-            val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
-            val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
-            val mappingConfig = mapOf(
-                SOURCE_TOPIC to TARGET_TOPIC
-            ).asProperties()
+        val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
+        val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
+        val mappingConfig = mapOf(
+            SOURCE_TOPIC to TARGET_TOPIC
+        ).asProperties()
 
-            val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
+        val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
 
-            val records = listOf("x", "y", "z")
-            embeddedEnv.produceToTopic(SOURCE_TOPIC, records)
+        val records = listOf("x", "y", "z")
+        embeddedEnv.produceToTopic(SOURCE_TOPIC, records)
 
-            val job = co { aivia.mirror() }
+        val job = co { aivia.mirror() }
 
 
-            val records2 = listOf("æ", "ø", "å")
-            embeddedEnv.produceToTopic(SOURCE_TOPIC, records2)
+        val records2 = listOf("æ", "ø", "å")
+        embeddedEnv.produceToTopic(SOURCE_TOPIC, records2)
 
-            // assert that target topic contains expected messages
-            assertContains {
-                return@assertContains embeddedEnv.records(TARGET_TOPIC).containsAll(records + records2)
-            }
-            job.cancel()
+        // assert that target topic contains expected messages
+        assertContains {
+            return@assertContains embeddedEnv.records(TARGET_TOPIC).containsAll(records + records2)
         }
+        job.cancel()
     }
 
     fun co(block: () -> Unit): Job {
