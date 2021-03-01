@@ -1,10 +1,14 @@
 package io.nais.aivia
 
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import no.nav.common.KafkaEnvironment
+import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
+import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -50,6 +54,44 @@ class KafkaTest {
 
         // assert that target topic contains expected messages
         assertEquals(records, embeddedEnv.records(TARGET_TOPIC))
+    }
+
+    @Test
+    fun `target topic contains messages published after subscribing`() {
+        val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
+        val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
+        val mappingConfig = mapOf(
+            SOURCE_TOPIC to TARGET_TOPIC
+        ).asProperties()
+
+        val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
+
+        val records = listOf("x", "y", "z")
+        embeddedEnv.produceToTopic(SOURCE_TOPIC, records)
+
+        co { aivia.mirror() }
+
+
+        val records2 = listOf("æ", "ø", "å")
+        embeddedEnv.produceToTopic(SOURCE_TOPIC, records2)
+
+        // assert that target topic contains expected messages
+        assertContains(TARGET_TOPIC, records + records2)
+    }
+
+    fun co(block: () -> Unit) {
+        GlobalScope.launch {
+            block.invoke()
+        }
+    }
+
+    private fun assertContains(topic: String, records: List<String>) {
+        await("wait until we get a reply")
+            .atMost(20, TimeUnit.SECONDS)
+            .until {
+                if (embeddedEnv.records(TARGET_TOPIC).containsAll(records)) return@until true
+                return@until false
+            }
     }
 
     val assertIsNotEmpty = { topic: String -> assertFalse(embeddedEnv.isEmpty(topic), "topic contains records") }

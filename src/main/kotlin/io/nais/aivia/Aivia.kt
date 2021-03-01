@@ -39,7 +39,6 @@ class Aivia (
                     }
             producer.flush()
             consumer.commitSync(Duration.ofSeconds(2))
-            break
         }
     }
 }
