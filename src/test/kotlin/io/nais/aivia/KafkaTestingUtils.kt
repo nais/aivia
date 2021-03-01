@@ -4,10 +4,12 @@ import no.nav.common.JAASCredential
 import no.nav.common.KafkaEnvironment
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
+import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.serialization.BytesDeserializer
+import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.apache.kafka.common.utils.Bytes
 import java.time.Duration
@@ -44,15 +46,16 @@ internal fun KafkaEnvironment.testClientProperties(): MutableMap<String, Any> {
     }
 }
 
-internal fun KafkaEnvironment.isEmpty(topicName: String): Boolean {
-    val consumer = KafkaConsumer(this.testClientProperties(), BytesDeserializer(), BytesDeserializer())
-    consumer.subscribe(listOf(topicName))
-    val records = consumer.poll(Duration.of(10, ChronoUnit.SECONDS))
-    if (!records.isEmpty) {
-        return false
-    }
-    return true
-}
+internal fun KafkaEnvironment.isEmpty(topicName: String): Boolean =
+    KafkaConsumer(this.testClientProperties(), BytesDeserializer(), BytesDeserializer())
+        .use { consumer ->
+            consumer.subscribe(listOf(topicName))
+            val records = consumer.poll(Duration.of(10, ChronoUnit.SECONDS))
+            if (!records.isEmpty) {
+                return false
+            }
+            return true
+        }
 
 internal fun KafkaEnvironment.produceToTopic(name: String, records: List<String>) {
     val clientProperties = testClientProperties()
@@ -62,5 +65,15 @@ internal fun KafkaEnvironment.produceToTopic(name: String, records: List<String>
     }
     producer.flush()
 }
+
+internal fun KafkaEnvironment.records(topicName: String): List<String> {
+    KafkaConsumer(this.testClientProperties(), StringDeserializer(), StringDeserializer())
+        .use { consumer ->
+            consumer.subscribe(listOf(topicName))
+            val records = consumer.poll(Duration.of(10, ChronoUnit.SECONDS))
+            return records.map {r -> r.value()}
+        }
+}
+
 
 internal fun Map<String, Any?>.asProperties(): Properties = Properties().apply { putAll(this@asProperties) }

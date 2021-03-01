@@ -48,10 +48,11 @@ class KafkaTest {
 
         aivia.mirror()
 
-        assertIsNotEmpty(TARGET_TOPIC)
         // assert that target topic contains expected messages
+        assertEquals(records, embeddedEnv.records(TARGET_TOPIC))
     }
 
     val assertIsNotEmpty = { topic: String -> assertFalse(embeddedEnv.isEmpty(topic), "topic contains records") }
     val assertIsEmpty = { topic: String -> assertTrue(embeddedEnv.isEmpty(topic), "topic is empty") }
+
 }
