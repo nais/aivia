@@ -1,7 +1,6 @@
 package io.nais.aivia
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import no.nav.common.KafkaEnvironment
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.AfterAll
@@ -36,62 +35,70 @@ class KafkaTest {
 
     @Test
     fun `given a source topic with messages, the target topic contains the same messages`() {
-        val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
-        val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
-        val mappingConfig = mapOf(
+        runBlocking {
+            val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
+            val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
+            val mappingConfig = mapOf(
                 SOURCE_TOPIC to TARGET_TOPIC
-        ).asProperties()
+            ).asProperties()
 
-        val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
+            val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
 
-        val records = listOf("x", "y", "z")
-        embeddedEnv.produceToTopic(SOURCE_TOPIC, records)
+            val records = listOf("x", "y", "z")
+            embeddedEnv.produceToTopic(SOURCE_TOPIC, records)
 
-        assertIsNotEmpty(SOURCE_TOPIC) // source has messages to start with
-        assertIsEmpty(TARGET_TOPIC)
+            assertIsNotEmpty(SOURCE_TOPIC) // source has messages to start with
+            assertIsEmpty(TARGET_TOPIC)
 
-        aivia.mirror()
+            val job = co { aivia.mirror() }
 
-        // assert that target topic contains expected messages
-        assertEquals(records, embeddedEnv.records(TARGET_TOPIC))
+            // assert that target topic contains expected messages
+
+            assertContains {
+                return@assertContains embeddedEnv.records(TARGET_TOPIC).containsAll(records)
+            }
+            job.cancel()
+        }
     }
 
     @Test
     fun `target topic contains messages published after subscribing`() {
-        val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
-        val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
-        val mappingConfig = mapOf(
-            SOURCE_TOPIC to TARGET_TOPIC
-        ).asProperties()
+        runBlocking {
+            val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
+            val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
+            val mappingConfig = mapOf(
+                SOURCE_TOPIC to TARGET_TOPIC
+            ).asProperties()
 
-        val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
+            val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
 
-        val records = listOf("x", "y", "z")
-        embeddedEnv.produceToTopic(SOURCE_TOPIC, records)
+            val records = listOf("x", "y", "z")
+            embeddedEnv.produceToTopic(SOURCE_TOPIC, records)
 
-        co { aivia.mirror() }
+            val job = co { aivia.mirror() }
 
 
-        val records2 = listOf("æ", "ø", "å")
-        embeddedEnv.produceToTopic(SOURCE_TOPIC, records2)
+            val records2 = listOf("æ", "ø", "å")
+            embeddedEnv.produceToTopic(SOURCE_TOPIC, records2)
 
-        // assert that target topic contains expected messages
-        assertContains(TARGET_TOPIC, records + records2)
+            // assert that target topic contains expected messages
+            assertContains {
+                return@assertContains embeddedEnv.records(TARGET_TOPIC).containsAll(records + records2)
+            }
+            job.cancel()
+        }
     }
 
-    fun co(block: () -> Unit) {
-        GlobalScope.launch {
+    fun co(block: () -> Unit): Job {
+        return GlobalScope.launch {
             block.invoke()
         }
     }
 
-    private fun assertContains(topic: String, records: List<String>) {
+    private fun assertContains(block: () -> Boolean) {
         await("wait until we get a reply")
             .atMost(20, TimeUnit.SECONDS)
-            .until {
-                if (embeddedEnv.records(TARGET_TOPIC).containsAll(records)) return@until true
-                return@until false
-            }
+            .until(block)
     }
 
     val assertIsNotEmpty = { topic: String -> assertFalse(embeddedEnv.isEmpty(topic), "topic contains records") }
