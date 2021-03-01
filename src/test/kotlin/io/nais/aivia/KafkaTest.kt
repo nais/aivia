@@ -1,19 +1,20 @@
 package io.nais.aivia
 
-import kotlinx.coroutines.*
-import no.nav.common.KafkaEnvironment
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS
-import java.util.concurrent.TimeUnit
-import kotlin.test.assertEquals
+import java.time.Duration
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 private const val SOURCE_TOPIC = "some-source-topic"
 private const val TARGET_TOPIC = "some-target-topic"
+private val THIRTY_SECONDS = Duration.ofSeconds(30)
 
 @TestInstance(PER_CLASS)
 class KafkaTest {
@@ -29,16 +30,11 @@ class KafkaTest {
     }
 
     @Test
-    fun `Kafka-instansen i minnet har blitt startet`() {
-        assertEquals(embeddedEnv.serverPark.status, KafkaEnvironment.ServerParkStatus.Started)
-    }
-
-    @Test
     fun `given a source topic with messages, the target topic contains the same messages`() {
         val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
         val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
         val mappingConfig = mapOf(
-            SOURCE_TOPIC to TARGET_TOPIC
+                SOURCE_TOPIC to TARGET_TOPIC
         ).asProperties()
 
         val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
@@ -51,11 +47,10 @@ class KafkaTest {
 
         val job = co { aivia.mirror() }
 
-        // assert that target topic contains expected messages
-
-        assertContains {
-            return@assertContains embeddedEnv.records(TARGET_TOPIC).containsAll(records)
+        await().atMost(THIRTY_SECONDS).untilAsserted {
+            assertTrue(embeddedEnv.records(TARGET_TOPIC).containsAll(records))
         }
+
         job.cancel()
     }
 
@@ -64,7 +59,7 @@ class KafkaTest {
         val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
         val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
         val mappingConfig = mapOf(
-            SOURCE_TOPIC to TARGET_TOPIC
+                SOURCE_TOPIC to TARGET_TOPIC
         ).asProperties()
 
         val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
@@ -74,30 +69,22 @@ class KafkaTest {
 
         val job = co { aivia.mirror() }
 
-
         val records2 = listOf("æ", "ø", "å")
         embeddedEnv.produceToTopic(SOURCE_TOPIC, records2)
 
-        // assert that target topic contains expected messages
-        assertContains {
-            return@assertContains embeddedEnv.records(TARGET_TOPIC).containsAll(records + records2)
+        await().atMost(THIRTY_SECONDS).untilAsserted {
+            assertTrue(embeddedEnv.records(TARGET_TOPIC).containsAll(records + records2))
         }
+
         job.cancel()
     }
 
-    fun co(block: () -> Unit): Job {
+    private fun co(block: () -> Unit): Job {
         return GlobalScope.launch {
             block.invoke()
         }
     }
 
-    private fun assertContains(block: () -> Boolean) {
-        await("wait until we get a reply")
-            .atMost(20, TimeUnit.SECONDS)
-            .until(block)
-    }
-
     val assertIsNotEmpty = { topic: String -> assertFalse(embeddedEnv.isEmpty(topic), "topic contains records") }
     val assertIsEmpty = { topic: String -> assertTrue(embeddedEnv.isEmpty(topic), "topic is empty") }
-
 }
