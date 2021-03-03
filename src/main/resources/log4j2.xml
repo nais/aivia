@@ -18,6 +18,15 @@
    </Appenders>
 
    <Loggers>
+      <Logger name="kafka" level="off">
+         <AppenderRef ref="CONSOLE"/>
+      </Logger>
+      <Logger name="org.apache.kafka" level="off">
+         <AppenderRef ref="CONSOLE"/>
+      </Logger>
+      <Logger name="org.apache.zookeeper" level="off">
+         <AppenderRef ref="CONSOLE"/>
+      </Logger>
       <Root level="${env:LOG_LEVEL:-INFO}">
          <AppenderRef ref="CONSOLE"/>
       </Root>

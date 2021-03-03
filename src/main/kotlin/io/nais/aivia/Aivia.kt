@@ -33,9 +33,7 @@ class Aivia (
                     .forEach { r ->
                         val sourceTopic: String = r.topic()
                         val targetTopic: String = mappingConfig[sourceTopic] as String
-
                         producer.send(ProducerRecord(targetTopic, r.key(), r.value()))
-                        println("Writing: ${r.value()}")
                     }
             producer.flush()
             consumer.commitSync(Duration.ofSeconds(2))
