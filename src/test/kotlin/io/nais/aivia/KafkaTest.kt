@@ -104,10 +104,13 @@ class KafkaTest {
             assertEquals(69 * 2, embeddedEnv.records(ORDERING_TOPIC_TARGET)?.count())
         }
 
-        assertTrue(embeddedEnv.equalOrdering(ORDERING_TOPIC_SOURCE, ORDERING_TOPIC_TARGET))
+        assertTrue(embeddedEnv.equalOrdering(ORDERING_TOPIC_SOURCE, ORDERING_TOPIC_TARGET),
+            "Partitions should be equal ordered")
 
         job.cancel()
     }
+
+
 
     private fun co(block: () -> Unit): Job {
         return GlobalScope.launch {

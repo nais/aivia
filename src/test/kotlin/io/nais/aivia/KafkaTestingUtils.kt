@@ -95,4 +95,3 @@ internal fun KafkaEnvironment.equalOrdering(some: String, other: String): Boolea
 
 internal val ConsumerRecords<String, String>?.values get() = this?.map { r -> r.value() } ?: emptyList()
 
-internal fun Map<String, Any?>.asProperties(): Properties = Properties().apply { putAll(this@asProperties) }

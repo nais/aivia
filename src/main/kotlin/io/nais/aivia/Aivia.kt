@@ -11,6 +11,8 @@ import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.kafka.common.serialization.ByteArraySerializer
 import org.apache.kafka.common.serialization.StringDeserializer
+import org.apache.logging.log4j.Logger
+import org.slf4j.LoggerFactory
 import java.io.File
 import java.time.Duration
 import java.time.temporal.ChronoUnit
@@ -23,11 +25,14 @@ class Aivia (
 ) {
     private val consumer = KafkaConsumer(sourceKafkaConfig, ByteArrayDeserializer(), ByteArrayDeserializer())
     private val producer = KafkaProducer(targetKafkaConfig, ByteArraySerializer(), ByteArraySerializer())
+    private var isRunning = true
+    private val logger = LoggerFactory.getLogger(this::class.java)
+
 
     fun mirror() {
         val sourceTopics = mappingConfig.keys.map { it.toString() }.toList()
         consumer.subscribe(sourceTopics)
-        while (true) { // TODO - should have an exit condition
+        while (isRunning) {
             val records = consumer.poll(Duration.of(5, ChronoUnit.SECONDS))
             records.asSequence()
                     .forEach { r ->
@@ -38,18 +43,25 @@ class Aivia (
             producer.flush()
             consumer.commitSync(Duration.ofSeconds(2))
         }
+        producer.close()
+        consumer.close()
+    }
+
+    fun shutdown() {
+        logger.info("Starting shutdown of Kafka Consumer and Producer")
+        isRunning = false
     }
 }
 
 fun kafkaConfigFrom(config: ApplicationConfig, serviceUser: ServiceUser? = null): Properties {
     return Properties().apply {
         put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, config.propertyOrNull("kafka.brokers")?.getString()
-                ?: "localhost:9092")
+                ?: "localhost:29092")
         put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java)
         put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java)
         put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
         put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false")
-        put(ConsumerConfig.GROUP_ID_CONFIG, "kafka-schema-backup-01")
+        put(ConsumerConfig.GROUP_ID_CONFIG, "kafka-aivia")
         if (serviceUser != null) {
             putAll(credentials(config, serviceUser))
         }
