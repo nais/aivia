@@ -1,0 +1,28 @@
+{
+  "topics": [
+    {
+      "topicName": "aivia-test-source",
+      "configEntries": {
+        "retention.ms": "86400000"
+      },
+      "members": [
+        {
+          "comment": "Morten Lied Johansen",
+          "member": "J157811",
+          "role": "MANAGER"
+        },
+        {
+          "comment": "Sondre Halvorsen",
+          "member": "H153869",
+          "role": "MANAGER"
+        },
+        {
+          "comment": "Test user",
+          "member": "srvAiviaTest",
+          "role": "CONSUMER"
+        }
+      ],
+      "numPartitions": 3
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+---
+apiVersion: kafka.nais.io/v1
+kind: Topic
+metadata:
+  name: aivia-test
+  namespace: aura
+  labels:
+    team: aura
+spec:
+  pool: nav-dev
+  config:  # optional; all fields are optional too; defaults shown
+    partitions: 3
+    retentionHours: 24  # -1 means unlimited
+  acl:
+    - team: aura
+      application: aivia-test
+      access: write   # read, write, readwrite
