@@ -18,10 +18,10 @@
    </Appenders>
 
    <Loggers>
-      <Logger name="kafka" level="off">
+      <Logger name="kafka" level="WARN">
          <AppenderRef ref="CONSOLE"/>
       </Logger>
-      <Logger name="org.apache.kafka" level="off">
+      <Logger name="org.apache.kafka" level="WARN">
          <AppenderRef ref="CONSOLE"/>
       </Logger>
       <Logger name="org.apache.zookeeper" level="off">

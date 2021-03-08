@@ -32,9 +32,11 @@ class Aivia (
 
     fun mirror() {
         val sourceTopics = mappingConfig.keys.map { it.toString() }.toList()
+        logger.info("Consuming from topics: $sourceTopics")
         consumer.subscribe(sourceTopics)
         while (isRunning) {
             val records = consumer.poll(Duration.of(5, ChronoUnit.SECONDS))
+            logger.info("Found ${records.count()} records to mirror")
             records.asSequence()
                     .forEach { r ->
                         val sourceTopic: String = r.topic()
@@ -44,6 +46,7 @@ class Aivia (
             producer.flush()
             consumer.commitSync(Duration.ofSeconds(2))
         }
+        logger.info("Completed never-ending loop")
         producer.close()
         consumer.close()
     }
