@@ -23,13 +23,19 @@ jobs:
     - name: "compile and run tests"
       run: "./gradlew build"
     - name: "Set image version"
-      run: echo "IMAGE=${BASEIMAGE}:$(date +%Y%m%d%H%M%S)-$(git describe --always --dirty --exclude '*')" >> $GITHUB_ENV
+      id: set-image-tag
+      run: |
+        export IMAGE="${BASEIMAGE}:$(date +%Y%m%d%H%M%S)-$(git describe --always --dirty --exclude '*')"
+        echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
+        echo "::set-output name=image::${IMAGE}"
     - name: "Build and publish Docker image"
       run: "docker build --pull --tag ${IMAGE} . && echo $GITHUB_TOKEN | docker login\
         \ --username $GITHUB_REPOSITORY --password-stdin https://ghcr.io\
         \ && docker push ${IMAGE}"
       env:
         "GITHUB_TOKEN": "${{ secrets.GITHUB_TOKEN }}"
+    outputs:
+      image: "${{ steps.set-image-tag.outputs.image }}"
   deploy:
     name: "deploy for testing"
     runs-on: ubuntu-latest
@@ -40,5 +46,5 @@ jobs:
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
-          RESOURCE: src/test/resources/aiven-topics.yml
-
+          RESOURCE: src/test/resources/aiven-topics.yml,nais/nais.yaml
+          VAR: image=${{ needs.build.outputs.image }}

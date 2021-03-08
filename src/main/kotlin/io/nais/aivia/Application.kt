@@ -43,8 +43,8 @@ fun Application.module() {
     }
     val source = this.environment.config.property("aivia.source_topic_name").getString()
     val target = this.environment.config.property("aivia.target_topic_name").getString()
-    Aivia(kafkaConfigFrom(this.environment.config),
-        kafkaConfigFrom(this.environment.config), mapOf(source to target).asProperties())
+    Aivia(kafkaOnPremConfigFrom(this.environment.config),
+        kafkaAivenConfigFrom(this.environment.config), mapOf(source to target).asProperties())
         .also {
             addShutdownHook("Aivia") { it.shutdown() }
             it.mirror()

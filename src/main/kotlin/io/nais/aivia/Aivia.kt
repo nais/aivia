@@ -5,6 +5,7 @@ import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
@@ -53,38 +54,64 @@ class Aivia (
     }
 }
 
-fun kafkaConfigFrom(config: ApplicationConfig, serviceUser: ServiceUser? = null): Properties {
+fun kafkaAivenConfigFrom(config: ApplicationConfig): Properties {
     return Properties().apply {
-        put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, config.propertyOrNull("kafka.brokers")?.getString()
+        put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, config.propertyOrNull("kafkaAiven.brokers")?.getString())
+        put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer::class.java)
+        put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer::class.java)
+        put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
+        put("ssl.endpoint.identification.algorithm", "")
+        put("ssl.truststore.location", config.propertyOrNull("kafkaAiven.truststore_path")?.getString())
+        put("ssl.truststore.password", config.propertyOrNull("kafkaAiven.credstore_password")?.getString())
+        put("ssl.keystore.type", "PKCS12")
+        put("ssl.keystore.location", config.propertyOrNull("kafkaAiven.keystore_path")?.getString())
+        put("ssl.keystore.password", config.propertyOrNull("kafkaAiven.credstore_password")?.getString())
+        put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true") // Acks=ALL, Retries=maxint, Max inflight request=1
+    }
+}
+
+fun kafkaOnPremConfigFrom(config: ApplicationConfig): Properties {
+    return Properties().apply {
+        put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, config.propertyOrNull("kafkaOnPrem.brokers")?.getString()
                 ?: "localhost:29092")
-        put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java)
-        put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer::class.java)
+        put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer::class.java)
+        put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer::class.java)
         put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
         put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false")
         put(ConsumerConfig.GROUP_ID_CONFIG, "kafka-aivia")
-        if (serviceUser != null) {
-            putAll(credentials(config, serviceUser))
+        putAll(credentials(config))
+    }
+}
+
+private fun credentials(config: ApplicationConfig): Properties {
+    return Properties().apply {
+        serviceUser(config.config("kafkaOnPrem.serviceuser"))?.also { serviceUser ->
+            put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SASL_SSL")
+            put(SaslConfigs.SASL_MECHANISM, "PLAIN")
+            put(SaslConfigs.SASL_JAAS_CONFIG, """org.apache.kafka.common.security.plain.PlainLoginModule required username="${serviceUser.username}" password="${serviceUser.password}"; """)
+            put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, getTrustStore(config))
+            put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, getTrustStorePassword(config))
         }
     }
 }
 
-private fun credentials(config: ApplicationConfig, serviceUser: ServiceUser): Properties {
-    return Properties().apply {
-        put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SASL_SSL")
-        put(SaslConfigs.SASL_MECHANISM, "PLAIN")
-        put(SaslConfigs.SASL_JAAS_CONFIG, """org.apache.kafka.common.security.plain.PlainLoginModule required username="${serviceUser.username}" password="${serviceUser.password}"; """)
-        put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, getTrustStore(config))
-        put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, getTrustStorePassword(config))
-    }
-}
-
 private fun getTrustStore(config: ApplicationConfig): String {
-    val path = config.propertyOrNull("kafka.truststore_path")?.getString() ?: "/etc/ssl/certs/java/cacerts"
+    val path = config.propertyOrNull("kafkaOnPrem.truststore_path")?.getString() ?: "/etc/ssl/certs/java/cacerts"
     return File(path).absolutePath
 }
 
 private fun getTrustStorePassword(config: ApplicationConfig): String {
-    return config.propertyOrNull("kafka.truststore_password")?.getString() ?: "changeme"
+    return config.propertyOrNull("kafkaOnPrem.truststore_password")?.getString() ?: "changeme"
+}
+
+fun serviceUser(appConfig: ApplicationConfig): ServiceUser? {
+    if (appConfig.propertyOrNull("username") != null) {
+        return ServiceUser(
+            username = appConfig.property("username").getString(),
+            password = appConfig.propertyOrNull("password")?.getString() ?: ""
+        )
+    }
+    return null
 }
 
 data class ServiceUser(val username: String, val password: String)
