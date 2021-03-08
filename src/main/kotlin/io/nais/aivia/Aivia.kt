@@ -56,16 +56,16 @@ class Aivia (
 
 fun kafkaAivenConfigFrom(config: ApplicationConfig): Properties {
     return Properties().apply {
-        put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, config.propertyOrNull("kafkaAiven.brokers")?.getString())
+        put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, config.property("kafkaAiven.brokers").getString())
         put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer::class.java)
         put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer::class.java)
         put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
         put("ssl.endpoint.identification.algorithm", "")
-        put("ssl.truststore.location", config.propertyOrNull("kafkaAiven.truststore_path")?.getString())
-        put("ssl.truststore.password", config.propertyOrNull("kafkaAiven.credstore_password")?.getString())
+        put("ssl.truststore.location", config.property("kafkaAiven.truststore_path").getString())
+        put("ssl.truststore.password", config.property("kafkaAiven.credstore_password").getString())
         put("ssl.keystore.type", "PKCS12")
-        put("ssl.keystore.location", config.propertyOrNull("kafkaAiven.keystore_path")?.getString())
-        put("ssl.keystore.password", config.propertyOrNull("kafkaAiven.credstore_password")?.getString())
+        put("ssl.keystore.location", config.property("kafkaAiven.keystore_path").getString())
+        put("ssl.keystore.password", config.property("kafkaAiven.credstore_password").getString())
         put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true") // Acks=ALL, Retries=maxint, Max inflight request=1
     }
 }
