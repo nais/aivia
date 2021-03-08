@@ -46,5 +46,5 @@ jobs:
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
-          RESOURCE: src/test/resources/aiven-topics.yml,nais/nais.yaml
+          RESOURCE: src/test/resources/aiven-topics.yaml,nais/nais.yaml
           VAR: image=${{ needs.build.outputs.image }}
