@@ -36,7 +36,7 @@ class KafkaTest {
     }
 
     @Test
-    fun `given a source topic with messages, the target topic contains the same messages`() {
+    fun `messages are continuously mirrored between source and target topic`() {
         val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
         val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
         val mappingConfig = mapOf(
@@ -47,39 +47,18 @@ class KafkaTest {
 
         val records = listOf("x", "y", "z")
         embeddedEnv.produceToTopic(SOURCE_TOPIC, records)
-
-        assertIsNotEmpty(SOURCE_TOPIC) // source has messages to start with
-        assertIsEmpty(TARGET_TOPIC)
 
         val job = co { aivia.mirror() }
 
         await().atMost(THIRTY_SECONDS).untilAsserted {
-            assertTrue(embeddedEnv.records(TARGET_TOPIC).values.containsAll(records))
+            assertTrue(embeddedEnv.records(TARGET_TOPIC).values.containsAll(records), "first batch mirrored")
         }
-
-        job.cancel()
-    }
-
-    @Test
-    fun `target topic contains messages published after subscribing`() {
-        val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
-        val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
-        val mappingConfig = mapOf(
-                SOURCE_TOPIC to TARGET_TOPIC
-        ).asProperties()
-
-        val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
-
-        val records = listOf("x", "y", "z")
-        embeddedEnv.produceToTopic(SOURCE_TOPIC, records)
-
-        val job = co { aivia.mirror() }
 
         val records2 = listOf("æ", "ø", "å")
         embeddedEnv.produceToTopic(SOURCE_TOPIC, records2)
 
         await().atMost(THIRTY_SECONDS).untilAsserted {
-            assertTrue(embeddedEnv.records(TARGET_TOPIC).values.containsAll(records + records2))
+            assertTrue(embeddedEnv.records(TARGET_TOPIC).values.containsAll(records + records2), "second batch mirrored")
         }
 
         job.cancel()
