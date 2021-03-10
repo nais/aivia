@@ -47,7 +47,7 @@ fun Application.module() {
         kafkaAivenConfigFrom(this.environment.config), mapOf(source to target).asProperties())
         .also {
             addShutdownHook("Aivia") { it.shutdown() }
-            it.mirror()
+            it.run()
     }
 }
 

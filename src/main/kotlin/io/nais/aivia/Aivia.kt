@@ -1,6 +1,8 @@
 package io.nais.aivia
 
 import io.ktor.config.ApplicationConfig
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -29,6 +31,12 @@ class Aivia (
     private var isRunning = true
     private val logger = LoggerFactory.getLogger(this::class.java)
 
+    fun run() {
+        GlobalScope.launch {
+            isRunning = true
+            mirror()
+        }
+    }
 
     fun mirror() {
         val sourceTopics = mappingConfig.keys.map { it.toString() }.toList()
