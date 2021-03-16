@@ -41,14 +41,12 @@ fun Application.module() {
                 JvmThreadMetrics()
         )
     }
-    val source = this.environment.config.property("aivia.source_topic_name").getString()
-    val target = this.environment.config.property("aivia.target_topic_name").getString()
-    Aivia(kafkaOnPremConfigFrom(this.environment.config),
-        kafkaAivenConfigFrom(this.environment.config), mapOf(source to target).asProperties())
+    Aivia(
+        kafkaOnPremConfigFrom(this.environment.config),
+        kafkaAivenConfigFrom(this.environment.config),
+        mappingConfigFrom(this.environment.config))
         .also {
             addShutdownHook("Aivia") { it.shutdown() }
             it.run()
     }
 }
-
-internal fun Map<String, Any?>.asProperties(): Properties = Properties().apply { putAll(this@asProperties) }

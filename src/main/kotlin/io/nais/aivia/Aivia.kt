@@ -13,10 +13,9 @@ import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.serialization.ByteArrayDeserializer
 import org.apache.kafka.common.serialization.ByteArraySerializer
-import org.apache.kafka.common.serialization.StringDeserializer
-import org.apache.logging.log4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
+import java.io.FileInputStream
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 import java.util.Properties
@@ -63,6 +62,15 @@ class Aivia (
         logger.info("Starting shutdown of Kafka Consumer and Producer")
         isRunning = false
     }
+}
+
+fun mappingConfigFrom(config: ApplicationConfig): Properties {
+    val topicMappingPath = config.property("aivia.topic_mapping_path").getString()
+    val prop = Properties()
+    FileInputStream(topicMappingPath).use {
+        prop.load(it)
+    }
+    return prop
 }
 
 fun kafkaAivenConfigFrom(config: ApplicationConfig): Properties {
