@@ -4,7 +4,7 @@ metadata:
   name: "aivia-test"
   namespace: "aura"
   labels:
-    "team": "aura"
+    team: "aura"
 spec:
   image: {{image}}
   liveness:
@@ -26,5 +26,7 @@ spec:
     memory: "256Mi"
   envFrom:
     - secret: aivia-kafka-on-prem
+  filesFrom:
+    - configmap: aivia-topic-mapping
   kafka:
     pool: nav-dev

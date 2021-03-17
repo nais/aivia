@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aivia-topic-mapping
+  namespace: aura
+  labels:
+    team: aura
+data:
+  topic_mapping.properties: |
+    aivia-test-source = aura.aivia-test
