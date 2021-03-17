@@ -1,6 +1,7 @@
 package io.nais.aivia
 
 import io.ktor.config.ApplicationConfig
+import io.prometheus.client.Counter
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import org.apache.kafka.clients.CommonClientConfigs
@@ -27,6 +28,13 @@ class Aivia (
 ) {
     private val consumer = KafkaConsumer(sourceKafkaConfig, ByteArrayDeserializer(), ByteArrayDeserializer())
     private val producer = KafkaProducer(targetKafkaConfig, ByteArraySerializer(), ByteArraySerializer())
+
+    private val mirroredRecords = Counter.build()
+        .name("aivia_mirrored_records")
+        .help("number of records mirrored")
+        .labelNames("source", "target")
+        .register()
+
     private var isRunning = true
     private val logger = LoggerFactory.getLogger(this::class.java)
 
@@ -43,12 +51,13 @@ class Aivia (
         consumer.subscribe(sourceTopics)
         while (isRunning) {
             val records = consumer.poll(Duration.of(5, ChronoUnit.SECONDS))
-            logger.info("Found ${records.count()} records to mirror")
+            logger.debug("Found ${records.count()} records to mirror")
             records.asSequence()
                     .forEach { r ->
                         val sourceTopic: String = r.topic()
                         val targetTopic: String = mappingConfig[sourceTopic] as String
                         producer.send(ProducerRecord(targetTopic, r.key(), r.value()))
+                        mirroredRecords.labels(sourceTopic, targetTopic).inc()
                     }
             producer.flush()
             consumer.commitSync(Duration.ofSeconds(2))
