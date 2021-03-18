@@ -1,6 +1,6 @@
 package io.nais.aivia
 
-import io.ktor.config.ApplicationConfig
+import io.ktor.config.*
 import io.prometheus.client.Counter
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -19,21 +19,21 @@ import java.io.File
 import java.io.FileInputStream
 import java.time.Duration
 import java.time.temporal.ChronoUnit
-import java.util.Properties
+import java.util.*
 
-class Aivia (
-        sourceKafkaConfig: Properties,
-        targetKafkaConfig: Properties,
-        private val mappingConfig: Properties
+private val mirroredRecords = Counter.build()
+    .name("aivia_mirrored_records")
+    .help("number of records mirrored")
+    .labelNames("source", "target")
+    .register()
+
+class Aivia(
+    sourceKafkaConfig: Properties,
+    targetKafkaConfig: Properties,
+    private val mappingConfig: Properties
 ) {
     private val consumer = KafkaConsumer(sourceKafkaConfig, ByteArrayDeserializer(), ByteArrayDeserializer())
     private val producer = KafkaProducer(targetKafkaConfig, ByteArraySerializer(), ByteArraySerializer())
-
-    private val mirroredRecords = Counter.build()
-        .name("aivia_mirrored_records")
-        .help("number of records mirrored")
-        .labelNames("source", "target")
-        .register()
 
     private var isRunning = true
     private val logger = LoggerFactory.getLogger(this::class.java)
@@ -53,12 +53,12 @@ class Aivia (
             val records = consumer.poll(Duration.of(5, ChronoUnit.SECONDS))
             logger.debug("Found ${records.count()} records to mirror")
             records.asSequence()
-                    .forEach { r ->
-                        val sourceTopic: String = r.topic()
-                        val targetTopic: String = mappingConfig[sourceTopic] as String
-                        producer.send(ProducerRecord(targetTopic, r.key(), r.value()))
-                        mirroredRecords.labels(sourceTopic, targetTopic).inc()
-                    }
+                .forEach { r ->
+                    val sourceTopic: String = r.topic()
+                    val targetTopic: String = mappingConfig[sourceTopic] as String
+                    producer.send(ProducerRecord(targetTopic, r.key(), r.value()))
+                    mirroredRecords.labels(sourceTopic, targetTopic).inc()
+                }
             producer.flush()
             consumer.commitSync(Duration.ofSeconds(2))
         }
@@ -100,8 +100,10 @@ fun kafkaAivenConfigFrom(config: ApplicationConfig): Properties {
 
 fun kafkaOnPremConfigFrom(config: ApplicationConfig): Properties {
     return Properties().apply {
-        put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, config.propertyOrNull("kafkaOnPrem.brokers")?.getString()
-                ?: "localhost:29092")
+        put(
+            ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, config.propertyOrNull("kafkaOnPrem.brokers")?.getString()
+                ?: "localhost:29092"
+        )
         put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer::class.java)
         put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer::class.java)
         put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
@@ -116,7 +118,10 @@ private fun credentials(config: ApplicationConfig): Properties {
         serviceUser(config.config("kafkaOnPrem.serviceuser"))?.also { serviceUser ->
             put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SASL_SSL")
             put(SaslConfigs.SASL_MECHANISM, "PLAIN")
-            put(SaslConfigs.SASL_JAAS_CONFIG, """org.apache.kafka.common.security.plain.PlainLoginModule required username="${serviceUser.username}" password="${serviceUser.password}"; """)
+            put(
+                SaslConfigs.SASL_JAAS_CONFIG,
+                """org.apache.kafka.common.security.plain.PlainLoginModule required username="${serviceUser.username}" password="${serviceUser.password}"; """
+            )
             put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, getTrustStore(config))
             put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, getTrustStorePassword(config))
         }
