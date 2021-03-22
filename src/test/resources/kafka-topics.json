@@ -20,6 +20,11 @@
           "comment": "Test user",
           "member": "srvAiviaTest",
           "role": "CONSUMER"
+        },
+        {
+          "comment": "Test data producer",
+          "member": "srvnadakafkatest",
+          "role": "PRODUCER"
         }
       ],
       "numPartitions": 3

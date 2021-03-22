@@ -51,7 +51,11 @@ class Aivia(
         consumer.subscribe(sourceTopics)
         while (isRunning) {
             val records = consumer.poll(Duration.of(5, ChronoUnit.SECONDS))
-            logger.debug("Found ${records.count()} records to mirror")
+            if (records.count() > 0) {
+                logger.info("Found ${records.count()} records to mirror")
+            } else {
+                logger.debug("Found no messages to mirror")
+            }
             records.asSequence()
                 .forEach { r ->
                     val sourceTopic: String = r.topic()
