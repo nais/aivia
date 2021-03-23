@@ -64,7 +64,7 @@ class Aivia(
                     mirroredRecords.labels(sourceTopic, targetTopic).inc()
                 }
             producer.flush()
-            consumer.commitSync(Duration.ofSeconds(2))
+            consumer.commitSync(Duration.ofSeconds(5))
         }
         logger.info("Completed never-ending loop")
         producer.close()
