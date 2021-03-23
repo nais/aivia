@@ -104,15 +104,16 @@ fun kafkaAivenConfigFrom(config: ApplicationConfig): Properties {
 
 fun kafkaOnPremConfigFrom(config: ApplicationConfig): Properties {
     return Properties().apply {
-        put(
-            ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, config.propertyOrNull("kafkaOnPrem.brokers")?.getString()
-                ?: "localhost:29092"
+        put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
+            config.propertyOrNull("kafkaOnPrem.brokers")?.getString() ?: "localhost:29092"
         )
         put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer::class.java)
         put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer::class.java)
         put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
         put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false")
-        put(ConsumerConfig.GROUP_ID_CONFIG, "kafka-aivia")
+        put(ConsumerConfig.GROUP_ID_CONFIG,
+            config.propertyOrNull("kafkaOnPrem.groupId")?.getString() ?: "kafka-aivia"
+        )
         putAll(credentials(config))
     }
 }
