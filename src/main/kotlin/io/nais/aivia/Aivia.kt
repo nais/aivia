@@ -3,6 +3,7 @@ package io.nais.aivia
 import io.ktor.config.*
 import io.prometheus.client.Counter
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig
@@ -36,13 +37,18 @@ class Aivia(
     private val producer = KafkaProducer(targetKafkaConfig, ByteArraySerializer(), ByteArraySerializer())
 
     private var isRunning = true
+    private var currentJob: Job? = null
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     fun run() {
-        GlobalScope.launch {
+        currentJob = GlobalScope.launch {
             isRunning = true
             mirror()
         }
+    }
+
+    fun isAlive(): Boolean {
+        return currentJob?.isActive ?: false
     }
 
     fun mirror() {

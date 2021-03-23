@@ -4,6 +4,8 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import no.nav.common.KafkaEnvironment.TopicInfo
+import org.apache.kafka.clients.CommonClientConfigs
+import org.apache.kafka.clients.producer.ProducerConfig
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
@@ -49,7 +51,7 @@ class KafkaTest {
         val records = listOf("x", "y", "z")
         embeddedEnv.produceToTopic(SOURCE_TOPIC, records)
 
-        val job = co { aivia.mirror() }
+        aivia.run()
 
         await().atMost(THIRTY_SECONDS).untilAsserted {
             assertTrue(embeddedEnv.records(TARGET_TOPIC).values.containsAll(records), "first batch mirrored")
@@ -62,7 +64,7 @@ class KafkaTest {
             assertTrue(embeddedEnv.records(TARGET_TOPIC).values.containsAll(records + records2), "second batch mirrored")
         }
 
-        job.cancel()
+        aivia.shutdown()
     }
 
     @Test
@@ -76,7 +78,7 @@ class KafkaTest {
         ).asProperties()
 
         val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
-        val job = co { aivia.mirror() }
+        aivia.run()
 
         embeddedEnv.produceToTopic(ORDERING_TOPIC_SOURCE, (0..68).map { it.toString() })
 
@@ -87,19 +89,29 @@ class KafkaTest {
         assertTrue(embeddedEnv.equalOrdering(ORDERING_TOPIC_SOURCE, ORDERING_TOPIC_TARGET),
             "Partitions should be equal ordered")
 
-        job.cancel()
+        aivia.shutdown()
     }
 
+    @Test
+    fun `liveness fails if mirroring stops`() {
+        val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
+        val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
+        val mappingConfig = mapOf(
+            SOURCE_TOPIC to TARGET_TOPIC
+        ).asProperties()
 
+        val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
+        aivia.run()
 
-    private fun co(block: () -> Unit): Job {
-        return GlobalScope.launch {
-            block.invoke()
+        assertTrue(aivia.isAlive(), "Mirroring should be alive")
+
+        aivia.shutdown()
+
+        await().atMost(THIRTY_SECONDS).untilAsserted {
+            assertFalse(aivia.isAlive(), "Mirroring should not be alive after shutdown")
         }
     }
 
     private fun Map<String, Any?>.asProperties(): Properties = Properties().apply { putAll(this@asProperties) }
 
-    val assertIsNotEmpty = { topic: String -> assertFalse(embeddedEnv.isEmpty(topic), "topic contains records") }
-    val assertIsEmpty = { topic: String -> assertTrue(embeddedEnv.isEmpty(topic), "topic is empty") }
 }
