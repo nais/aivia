@@ -15,6 +15,7 @@ import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.prometheus.client.CollectorRegistry
 import org.apache.kafka.common.utils.Exit.addShutdownHook
+import java.io.FileInputStream
 import java.util.*
 
 fun main(args: Array<String>) {
@@ -63,4 +64,13 @@ fun selectConfig(config: ApplicationConfig, role: String): Properties {
             throw ApplicationConfigurationException("$cluster is invalid value for property $role. Must be set to either `on-prem` or `aiven`.")
         }
     }
+}
+
+private fun mappingConfigFrom(config: ApplicationConfig): Properties {
+    val topicMappingPath = config.property("aivia.topic_mapping_path").getString()
+    val prop = Properties()
+    FileInputStream(topicMappingPath).use {
+        prop.load(it)
+    }
+    return prop
 }
