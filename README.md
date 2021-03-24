@@ -3,8 +3,8 @@ AiviA
 
 Simple app to mirror a topic from on-prem kafka to Aiven kafka.
 
-How to use
-----------
+How does it work?
+-----------------
 
 First you need to create a mapping of topics to mirror. The app will read this from a properties-file, mapping a source topic to a destination topic. 
 
@@ -19,23 +19,106 @@ With this configuration messages will be copied from `aapen-data-v2` on-prem to 
 
 The application will read the file from the path `/var/run/configmaps/aivia-topic-mapping/topic_mapping.properties`. If you want something else, you can use the environment variable `AIVIA_TOPIC_MAPPING_PATH`.
 
-The best way to achieve this is to use a [ConfigMap](https://kubernetes.io/docs/concepts/configuration/configmap/) that is mounted with the application using [`spec.filesFrom[].configmap`](https://doc.nais.io/nais-application/nais.yaml/reference/#specfilesfromconfigmap):
+If you want to use AiviA to mirror some other direction than on-prem to Aiven, you also need to configure source and target clusters using the environment variables `AIVIA_SOURCE` and `AIVIA_TARGET` respectively. Valid values are `on-prem` and `aiven`. The default is `on-prem` for source and `aiven` for target.
+
+Using AiviA
+-----------
+
+### 1. Create a new repository with a nais.yaml file:
+
+```yaml
+apiVersion: "nais.io/v1alpha1"
+kind: "Application"
+metadata:
+  name: aivia
+  namespace: myteam
+  labels:
+    team: myteam
+spec:
+  image: ghcr.io/nais/aivia:latest
+  liveness:
+    path: "/internal/isalive"
+  readiness:
+    path: "/internal/isready"
+  replicas:
+    min: 1
+    max: 1
+    cpuThresholdPercentage: 50
+  prometheus:
+    enabled: true
+    path: "/internal/prometheus"
+  limits:
+    cpu: "200m"
+    memory: "256Mi"
+  requests:
+    cpu: "200m"
+    memory: "256Mi"
+  envFrom:
+    - secret: aivia-kafka-on-prem
+  filesFrom:
+    - configmap: aivia-topic-mapping
+  kafka:
+    pool: nav-dev
+```
+
+If you want to use a specific version, get the latest aivia image from the [AiviA package page](https://github.com/orgs/nais/packages/container/package/aivia).
+
+### 2. Create a configmap with your topic mappings
 
 ```yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
   labels:
-    team: nais
+    team: myteam
   name: aivia-topic-mapping
-  namespace: nais
+  namespace: myteam
 data:
   topic_mapping.properties: |
-    aapen-data-v2 = nais.data-v2
-    privat-hemmelig-saa-det-saa = nais.hemmelig-v2
+    aapen-data-v2 = myteam.data-v2
+    privat-hemmelig-saa-det-saa = myteam.hemmelig-v2
 ```
 
-If you want to use AiviA to mirror some other direction than on-prem to Aiven, you also need to configure source and target clusters using the environment variables `AIVIA_SOURCE` and `AIVIA_TARGET` respectively. Valid values are `on-prem` and `aiven`. The default is `on-prem` for source and `aiven` for target.
+### 3. Create a workflow to deploy the application and configmap
+
+```yaml
+name: "Deploy aivia"
+on:
+  push:
+    branches:
+    - "main"
+jobs:
+  deploy:
+    name: "Deploy AiviA"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: "actions/checkout@v2"
+      - uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: dev-gcp
+          RESOURCE: configmap.yaml,nais.yaml
+```
+
+### 4. Create a secret with configuration for on-prem kafka, and apply it to the cluster
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: aivia-kafka-on-prem
+  namespace: myteam
+stringData:
+  KAFKA_ON_PREM_BROKERS: "b27apvl00045.preprod.local:8443,b27apvl00046.preprod.local:8443,b27apvl00047.preprod.local:8443"
+  KAFKA_ON_PREM_USERNAME: "myServiceUser"
+  KAFKA_ON_PREM_PASSWORD: "myServiceUsersPassword"
+```
+
+Run `kubectl apply -f secret.yaml` to insert the secret into the cluster. Do *not* commit `secret.yaml` to the repository.
+
+### 5. Commit and push
+
+Commit `nais.yaml`, `configmap.yaml` and `.github/workflows/main.yaml` and push to github.
 
 What does this do?
 ------------------

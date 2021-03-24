@@ -29,9 +29,10 @@ jobs:
         echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
         echo "::set-output name=image::${IMAGE}"
     - name: "Build and publish Docker image"
-      run: "docker build --pull --tag ${IMAGE} . && echo $GITHUB_TOKEN | docker login\
-        \ --username $GITHUB_REPOSITORY --password-stdin https://ghcr.io\
-        \ && docker push ${IMAGE}"
+      run: |
+        docker build --pull --tag ${IMAGE} --tag ${BASEIMAGE}:latest .
+        echo $GITHUB_TOKEN | docker login --username $GITHUB_REPOSITORY --password-stdin https://ghcr.io
+        docker push ${IMAGE} ${BASEIMAGE}:latest"
       env:
         "GITHUB_TOKEN": "${{ secrets.GITHUB_TOKEN }}"
     outputs:
