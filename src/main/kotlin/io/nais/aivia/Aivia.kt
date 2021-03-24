@@ -92,36 +92,50 @@ fun mappingConfigFrom(config: ApplicationConfig): Properties {
     return prop
 }
 
-fun kafkaAivenConfigFrom(config: ApplicationConfig): Properties {
+fun kafkaAivenConfigFrom(config: ApplicationConfig, role: String): Properties {
     return Properties().apply {
-        put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, config.property("kafkaAiven.brokers").getString())
-        put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer::class.java)
-        put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer::class.java)
+        if (role == "target") {
+            put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, config.property("kafkaAiven.brokers").getString())
+            commonProducerConfig()
+        } else {
+            put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, config.property("kafkaAiven.brokers").getString())
+            commonConsumerConfig(config)
+        }
         put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "SSL");
-        put("ssl.endpoint.identification.algorithm", "")
-        put("ssl.truststore.location", config.property("kafkaAiven.truststore_path").getString())
-        put("ssl.truststore.password", config.property("kafkaAiven.credstore_password").getString())
-        put("ssl.keystore.type", "PKCS12")
-        put("ssl.keystore.location", config.property("kafkaAiven.keystore_path").getString())
-        put("ssl.keystore.password", config.property("kafkaAiven.credstore_password").getString())
-        put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true") // Acks=ALL, Retries=maxint, Max inflight request=1
+        put(SslConfigs.SSL_ENDPOINT_IDENTIFICATION_ALGORITHM_CONFIG, "")
+        put(SslConfigs.SSL_TRUSTSTORE_LOCATION_CONFIG, config.property("kafkaAiven.truststore_path").getString())
+        put(SslConfigs.SSL_TRUSTSTORE_PASSWORD_CONFIG, config.property("kafkaAiven.credstore_password").getString())
+        put(SslConfigs.SSL_KEYSTORE_TYPE_CONFIG, "PKCS12")
+        put(SslConfigs.SSL_KEYSTORE_LOCATION_CONFIG, config.property("kafkaAiven.keystore_path").getString())
+        put(SslConfigs.SSL_KEYSTORE_PASSWORD_CONFIG, config.property("kafkaAiven.credstore_password").getString())
     }
 }
 
-fun kafkaOnPremConfigFrom(config: ApplicationConfig): Properties {
+fun kafkaOnPremConfigFrom(config: ApplicationConfig, role: String): Properties {
     return Properties().apply {
-        put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG,
-            config.propertyOrNull("kafkaOnPrem.brokers")?.getString() ?: "localhost:29092"
-        )
-        put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer::class.java)
-        put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer::class.java)
-        put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
-        put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false")
-        put(ConsumerConfig.GROUP_ID_CONFIG,
-            config.propertyOrNull("kafkaOnPrem.groupId")?.getString() ?: "kafka-aivia"
-        )
+        if (role == "target") {
+            put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, config.property("kafkaOnPrem.brokers").getString())
+            commonProducerConfig()
+        } else {
+            put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, config.property("kafkaOnPrem.brokers").getString())
+            commonConsumerConfig(config)
+        }
         putAll(credentials(config))
     }
+}
+
+private fun Properties.commonProducerConfig() {
+    put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer::class.java)
+    put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer::class.java)
+    put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true") // Acks=ALL, Retries=maxint, Max inflight request=1
+}
+
+private fun Properties.commonConsumerConfig(config: ApplicationConfig) {
+    put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer::class.java)
+    put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer::class.java)
+    put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest")
+    put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "false")
+    put(ConsumerConfig.GROUP_ID_CONFIG, config.property("aivia.groupId").getString())
 }
 
 private fun credentials(config: ApplicationConfig): Properties {

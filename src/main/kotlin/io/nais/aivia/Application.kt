@@ -1,6 +1,7 @@
 package io.nais.aivia
 
 import io.ktor.application.*
+import io.ktor.config.*
 import io.ktor.metrics.micrometer.*
 import io.ktor.routing.*
 import io.ktor.server.netty.*
@@ -14,6 +15,7 @@ import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.prometheus.client.CollectorRegistry
 import org.apache.kafka.common.utils.Exit.addShutdownHook
+import java.util.*
 
 fun main(args: Array<String>) {
     EngineMain.main(args)
@@ -22,8 +24,8 @@ fun main(args: Array<String>) {
 @Suppress("unused")
 fun Application.module() {
     Aivia(
-        kafkaOnPremConfigFrom(this.environment.config),
-        kafkaAivenConfigFrom(this.environment.config),
+        selectConfig(this.environment.config, "source"),
+        selectConfig(this.environment.config, "target"),
         mappingConfigFrom(this.environment.config)
     ).also {
         addShutdownHook("Aivia") { it.shutdown() }
@@ -46,5 +48,19 @@ fun Application.module() {
             ProcessorMetrics(),
             JvmThreadMetrics()
         )
+    }
+}
+
+fun selectConfig(config: ApplicationConfig, role: String): Properties {
+    return when (val cluster = config.property("aivia.$role").getString()) {
+        "on-prem" -> {
+            kafkaOnPremConfigFrom(config, role)
+        }
+        "aiven" -> {
+            kafkaAivenConfigFrom(config, role)
+        }
+        else -> {
+            throw ApplicationConfigurationException("$cluster is invalid value for property $role. Must be set to either `on-prem` or `aiven`.")
+        }
     }
 }

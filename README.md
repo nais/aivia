@@ -6,7 +6,7 @@ Simple app to mirror a topic from on-prem kafka to Aiven kafka.
 How to use
 ----------
 
-First you need to create a mapping of topics to mirror. The app will read this from a properties-file, mapping a source topic to a destination topic.
+First you need to create a mapping of topics to mirror. The app will read this from a properties-file, mapping a source topic to a destination topic. 
 
 Example:
 
@@ -34,6 +34,8 @@ data:
     aapen-data-v2 = nais.data-v2
     privat-hemmelig-saa-det-saa = nais.hemmelig-v2
 ```
+
+If you want to use AiviA to mirror some other direction than on-prem to Aiven, you also need to configure source and target clusters using the environment variables `AIVIA_SOURCE` and `AIVIA_TARGET` respectively. Valid values are `on-prem` and `aiven`. The default is `on-prem` for source and `aiven` for target.
 
 What does this do?
 ------------------
