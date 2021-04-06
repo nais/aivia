@@ -32,7 +32,7 @@ jobs:
       run: |
         docker build --pull --tag ${IMAGE} --tag ${BASEIMAGE}:latest .
         echo $GITHUB_TOKEN | docker login --username $GITHUB_REPOSITORY --password-stdin https://ghcr.io
-        docker push ${IMAGE} ${BASEIMAGE}:latest"
+        docker push ${IMAGE} ${BASEIMAGE}:latest
       env:
         "GITHUB_TOKEN": "${{ secrets.GITHUB_TOKEN }}"
     outputs:
