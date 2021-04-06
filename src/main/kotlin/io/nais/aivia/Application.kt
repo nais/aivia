@@ -14,6 +14,7 @@ import io.micrometer.core.instrument.binder.system.ProcessorMetrics
 import io.micrometer.prometheus.PrometheusConfig
 import io.micrometer.prometheus.PrometheusMeterRegistry
 import io.prometheus.client.CollectorRegistry
+import io.prometheus.client.Gauge
 import org.apache.kafka.common.utils.Exit.addShutdownHook
 import java.io.FileInputStream
 import java.util.*
@@ -50,6 +51,20 @@ fun Application.module() {
             JvmThreadMetrics()
         )
     }
+
+    addInfoMetric()
+}
+
+private fun Application.addInfoMetric() {
+    val info = Gauge.build()
+        .name("aivia_info")
+        .help("instance information")
+        .labelNames("image", "version")
+        .register()
+    val appImage = this.environment.config.property("aivia.app_image").getString()
+    val image = appImage.substringBefore(":")
+    val version = appImage.substringAfter(":", "")
+    info.labels(image, version).set(1.0)
 }
 
 fun selectConfig(config: ApplicationConfig, role: String): Properties {
