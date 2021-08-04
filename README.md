@@ -133,3 +133,4 @@ AiviA _does not_ guarantee the following:
 
 - Prompt delivery of messages.
 - Preservation of offsets. Your application should ideally handle messages idempotently.
+
