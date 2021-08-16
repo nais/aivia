@@ -4,7 +4,8 @@ on:
     branches:
     - "main"
 env:
-  "BASEIMAGE": "ghcr.io/${{ github.repository }}"
+  BASEIMAGE: "ghcr.io/${{ github.repository }}"
+
 jobs:
   build:
     name: "build"
@@ -25,16 +26,22 @@ jobs:
     - name: "Set image version"
       id: set-image-tag
       run: |
+        # TODO: Replace with https://github.com/docker/metadata-action once
+        # https://github.com/docker/metadata-action/issues/120 is resolved
         export IMAGE="${BASEIMAGE}:$(date +%Y%m%d%H%M%S)-$(git describe --always --dirty --exclude '*')"
         echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
         echo "::set-output name=image::${IMAGE}"
-    - name: "Build and publish Docker image"
-      run: |
-        docker build --pull --tag ${IMAGE} --tag ${BASEIMAGE}:latest .
-        echo $GITHUB_TOKEN | docker login --username $GITHUB_REPOSITORY --password-stdin https://ghcr.io
-        docker push --all-tags ${BASEIMAGE}
-      env:
-        "GITHUB_TOKEN": "${{ secrets.GITHUB_TOKEN }}"
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build and push
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: ${BASEIMAGE}:latest,${IMAGE}
     outputs:
       image: "${{ steps.set-image-tag.outputs.image }}"
   deploy:
