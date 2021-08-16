@@ -41,7 +41,7 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: ${BASEIMAGE}:latest,${IMAGE}
+        tags: ${{ env.BASEIMAGE }}:latest,${{ env.IMAGE }}
     outputs:
       image: "${{ steps.set-image-tag.outputs.image }}"
   deploy:
