@@ -21,6 +21,8 @@ The application will read the file from the path `/var/run/configmaps/aivia-topi
 
 If you want to use AiviA to mirror some other direction than on-prem to Aiven, you also need to configure source and target clusters using the environment variables `AIVIA_SOURCE` and `AIVIA_TARGET` respectively. Valid values are `on-prem` and `aiven`. The default is `on-prem` for source and `aiven` for target.
 
+It is possible to mirror any combination of `AIVIA_SOURCE` and `AIVIA_TARGET` (even `aiven` to `aiven`).
+
 Using AiviA
 -----------
 
