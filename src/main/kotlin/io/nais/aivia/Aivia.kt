@@ -54,15 +54,20 @@ class Aivia(
             } else {
                 logger.debug("Found no messages to mirror")
             }
-            records.asSequence()
-                .forEach { r ->
-                    val sourceTopic: String = r.topic()
-                    val targetTopic: String = mappingConfig[sourceTopic] as String
-                    producer.send(ProducerRecord(targetTopic, r.key(), r.value()))
-                    mirroredRecords.labels(sourceTopic, targetTopic).inc()
-                }
-            producer.flush()
-            consumer.commitSync(Duration.ofSeconds(5))
+            mutableMapOf<String, Int>().withDefault { 0 }.apply {
+                records.asSequence()
+                    .forEach { r ->
+                        val sourceTopic: String = r.topic()
+                        val targetTopic: String = mappingConfig[sourceTopic] as String
+                        producer.send(ProducerRecord(targetTopic, r.key(), r.value()))
+                        mirroredRecords.labels(sourceTopic, targetTopic).inc()
+                        put(sourceTopic, getValue(sourceTopic) + 1)
+                    }
+                producer.flush()
+                consumer.commitSync(Duration.ofSeconds(5))
+            }.forEach { (topic, count) ->
+                logger.info("-> Mirrored $count records from source topic $topic")
+            }
         }
         logger.info("Completed never-ending loop")
         producer.close()
