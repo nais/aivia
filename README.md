@@ -1,7 +1,7 @@
 AiviA
 =====
 
-Simple app to mirror a topic from on-prem kafka to Aiven kafka.
+Simple app to mirror a topic from on-prem kafka to Aiven kafka. It does not support Schema Registry.
 
 How does it work?
 -----------------
