@@ -76,6 +76,8 @@ kind: ConfigMap
 metadata:
   labels:
     team: myteam
+  annotations:
+    reloader.stakater.com/match: "true"
   name: aivia-topic-mapping
   namespace: myteam
 data:
