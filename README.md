@@ -2,6 +2,7 @@ AiviA
 =====
 
 Simple app to mirror a topic from on-prem kafka to Aiven kafka. It does not support Schema Registry.
+This application is intended as a tool to help migrate away from the on-prem Kafka cluster, which is [deprecated](https://doc.nais.io/legacy/sunset/#kafka-onprem).
 
 How does it work?
 -----------------
