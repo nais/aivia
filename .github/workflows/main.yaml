@@ -24,28 +24,31 @@ jobs:
         "distribution": "zulu"
     - name: "compile and run tests"
       run: "./gradlew build"
-    - name: "Set image version"
-      id: set-image-tag
-      run: |
-        # TODO: Replace with https://github.com/docker/metadata-action once
-        # https://github.com/docker/metadata-action/issues/120 is resolved
-        export IMAGE="${BASEIMAGE}:$(date +%Y%m%d%H%M%S)-$(git describe --always --dirty --exclude '*')"
-        echo "IMAGE=${IMAGE}" >> $GITHUB_ENV
-        echo "image=${IMAGE}" >> ${GITHUB_OUTPUT}
     - name: Login to GitHub Container Registry
       uses: docker/login-action@v2
       with:
         registry: ghcr.io
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Docker meta
+      id: metadata
+      uses: docker/metadata-action@v4
+      with:
+        images: ${{ env.BASEIMAGE }}
+        tags: |
+          type=raw,value={{date 'YYYYMMDDhhmmss'}}-{{sha}}
+          type=raw,value=latest
     - name: Build and push
       uses: docker/build-push-action@v3
       with:
         context: .
-        push: true
-        tags: ${{ env.BASEIMAGE }}:latest,${{ env.IMAGE }}
+        push: ${{ github.ref == 'refs/heads/main' }}
+        tags: ${{ steps.metadata.outputs.tags }}
+        labels: ${{ steps.metadata.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
     outputs:
-      image: "${{ steps.set-image-tag.outputs.image }}"
+      image: "${{ fromJSON(steps.metadata.outputs.json).tags[0] }}"
   deploy:
     name: "deploy for testing"
     runs-on: ubuntu-latest
