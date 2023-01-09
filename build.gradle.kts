@@ -1,18 +1,17 @@
 plugins {
-    kotlin("jvm") version "1.4.20"
+    kotlin("jvm") version "1.8.0"
 }
 
 repositories {
     mavenCentral()
     maven("https://jitpack.io")
     maven("https://packages.confluent.io/maven")
-    jcenter()
 }
 
 val junitJupiterVersion = "5.6.1"
-val kafkaVersion = "2.5.0"
-val ktorVersion = "1.3.2"
-val log4jVersion = "2.17.0"
+val kafkaVersion = "2.6.3"
+val ktorVersion = "2.2.2"
+val log4jVersion = "2.17.1"
 val micrometerVersion = "1.5.2"
 val prometheusVersion = "0.9.0"
 val slf4jVersion = "1.7.30"
@@ -20,14 +19,14 @@ val slf4jVersion = "1.7.30"
 dependencies {
     implementation(platform(kotlin("bom")))
     implementation(kotlin("stdlib-jdk8"))
-    implementation("io.ktor:ktor-client-cio:$ktorVersion")
-    implementation("io.ktor:ktor-server-netty:$ktorVersion")
-    implementation("io.ktor:ktor-auth:$ktorVersion")
     implementation("io.ktor:ktor-serialization:$ktorVersion")
-    implementation("io.ktor:ktor-metrics-micrometer:$ktorVersion")
+    implementation("io.ktor:ktor-server-netty:$ktorVersion")
+    implementation("io.ktor:ktor-server-auth:$ktorVersion")
+    implementation("io.ktor:ktor-server-metrics-micrometer:$ktorVersion")
+    implementation("io.ktor:ktor-server-html-builder:$ktorVersion")
+    implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-serialization-jvm:$ktorVersion")
     implementation("io.ktor:ktor-client-json:$ktorVersion")
-    implementation("io.ktor:ktor-html-builder:$ktorVersion")
     implementation("io.prometheus:simpleclient:$prometheusVersion")
     implementation("io.micrometer:micrometer-registry-prometheus:$micrometerVersion")
     implementation("org.apache.kafka:kafka-clients:$kafkaVersion")
@@ -48,13 +47,12 @@ dependencies {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_15
-    targetCompatibility = JavaVersion.VERSION_15
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
-    kotlinOptions.freeCompilerArgs += "-Xopt-in=kotlinx.serialization.UnstableDefault,io.ktor.util.KtorExperimentalAPI"
+    kotlinOptions.jvmTarget = "17"
 }
 
 tasks.named<Jar>("jar") {

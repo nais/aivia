@@ -1,6 +1,7 @@
 package io.nais.aivia
 
 import io.prometheus.client.Counter
+import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -33,6 +34,7 @@ class Aivia(
     private val logger = LoggerFactory.getLogger(this::class.java)
 
     fun run() {
+        @OptIn(DelicateCoroutinesApi::class)
         currentJob = GlobalScope.launch {
             isRunning = true
             mirror()

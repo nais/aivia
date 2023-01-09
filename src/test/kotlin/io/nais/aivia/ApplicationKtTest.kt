@@ -1,6 +1,6 @@
 package io.nais.aivia
 
-import io.ktor.config.*
+import io.ktor.server.config.*
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.junit.jupiter.api.Assertions.assertEquals

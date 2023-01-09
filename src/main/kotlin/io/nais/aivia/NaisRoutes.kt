@@ -1,11 +1,11 @@
 package io.nais.aivia
 
-import io.ktor.application.call
+import io.ktor.server.application.call
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
-import io.ktor.response.*
-import io.ktor.routing.Route
-import io.ktor.routing.get
+import io.ktor.server.response.*
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
 import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.exporter.common.TextFormat
 
