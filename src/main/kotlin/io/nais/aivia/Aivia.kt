@@ -49,7 +49,8 @@ class Aivia(
         val sourceTopics = mappingConfig.keys.map { it.toString() }.toList()
         logger.info("Consuming from topics: $sourceTopics")
         consumer.subscribe(sourceTopics)
-        while (isRunning) {
+        var failed = false
+        while (isRunning && !failed) {
             val records = consumer.poll(Duration.of(5, ChronoUnit.SECONDS))
             if (records.count() > 0) {
                 logger.info("Found ${records.count()} records to mirror")
@@ -61,12 +62,19 @@ class Aivia(
                     .forEach { r ->
                         val sourceTopic: String = r.topic()
                         val targetTopic: String = mappingConfig[sourceTopic] as String
-                        producer.send(ProducerRecord(targetTopic, r.key(), r.value()))
+                        producer.send(ProducerRecord(targetTopic, r.key(), r.value())) { _, e ->
+                            if (null != e) {
+                                failed = true
+                                logger.error("Failed to produce record: %s", e)
+                            }
+                        }
                         mirroredRecords.labels(sourceTopic, targetTopic).inc()
                         put(sourceTopic, getValue(sourceTopic) + 1)
                     }
                 producer.flush()
-                consumer.commitSync(Duration.ofSeconds(5))
+                if (!failed) {
+                    consumer.commitSync(Duration.ofSeconds(5))
+                }
             }.forEach { (topic, count) ->
                 logger.info("-> Mirrored $count records from source topic $topic")
             }
