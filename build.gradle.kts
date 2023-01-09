@@ -36,7 +36,7 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-slf4j-impl:$log4jVersion")
     implementation("com.vlkan.log4j2:log4j2-logstash-layout-fatjar:0.19")
 
-    testImplementation("org.awaitility:awaitility:4.0.3")
+    testImplementation("org.awaitility:awaitility:4.2.0")
     testImplementation("org.amshove.kluent:kluent:1.72")
     testImplementation("no.nav:kafka-embedded-env:$kafkaVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
