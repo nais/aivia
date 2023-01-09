@@ -9,7 +9,7 @@ repositories {
 }
 
 val junitJupiterVersion = "5.6.1"
-val kafkaVersion = "2.6.3"
+val kafkaVersion = "2.8.1"
 val ktorVersion = "2.2.2"
 val log4jVersion = "2.17.1"
 val micrometerVersion = "1.5.2"
@@ -38,7 +38,7 @@ dependencies {
 
     testImplementation("org.awaitility:awaitility:4.0.3")
     testImplementation("org.amshove.kluent:kluent:1.65")
-    testImplementation("no.nav:kafka-embedded-env:2.5.0")
+    testImplementation("no.nav:kafka-embedded-env:$kafkaVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.junit.jupiter:junit-jupiter-api:$junitJupiterVersion")
