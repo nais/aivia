@@ -13,7 +13,7 @@ val kafkaVersion = "2.8.1"
 val ktorVersion = "2.2.2"
 val log4jVersion = "2.19.0"
 val micrometerVersion = "1.5.2"
-val prometheusVersion = "0.9.0"
+val prometheusVersion = "0.16.0"
 val slf4jVersion = "1.7.30"
 
 dependencies {
