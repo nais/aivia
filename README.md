@@ -68,7 +68,8 @@ spec:
     pool: nav-dev
 ```
 
-If you want to use a specific version, get the latest aivia image from the [AiviA package page](https://github.com/orgs/nais/packages/container/package/aivia).
+It is best to use a specific version, which you can do by getting the latest aivia image from the [AiviA package page](https://github.com/orgs/nais/packages/container/package/aivia).
+If you do so, you must make sure to keep updated with latest versions.
 
 ### 2. Create a configmap with your topic mappings
 
