@@ -1,11 +1,6 @@
 package io.nais.aivia
 
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import no.nav.common.KafkaEnvironment.TopicInfo
-import org.apache.kafka.clients.CommonClientConfigs
-import org.apache.kafka.clients.producer.ProducerConfig
 import org.awaitility.Awaitility.await
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Test
@@ -43,7 +38,7 @@ class KafkaTest {
         val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
         val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
         val mappingConfig = mapOf(
-                SOURCE_TOPIC to TARGET_TOPIC
+            SOURCE_TOPIC to TARGET_TOPIC
         ).asProperties()
 
         val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
@@ -61,7 +56,10 @@ class KafkaTest {
         embeddedEnv.produceToTopic(SOURCE_TOPIC, records2)
 
         await().atMost(THIRTY_SECONDS).untilAsserted {
-            assertTrue(embeddedEnv.records(TARGET_TOPIC).values.containsAll(records + records2), "second batch mirrored")
+            assertTrue(
+                embeddedEnv.records(TARGET_TOPIC).values.containsAll(records + records2),
+                "second batch mirrored"
+            )
         }
 
         aivia.shutdown()
@@ -74,7 +72,7 @@ class KafkaTest {
         val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
         val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
         val mappingConfig = mapOf(
-                ORDERING_TOPIC_SOURCE to ORDERING_TOPIC_TARGET
+            ORDERING_TOPIC_SOURCE to ORDERING_TOPIC_TARGET
         ).asProperties()
 
         val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
@@ -86,8 +84,10 @@ class KafkaTest {
             assertEquals(69 * 2, embeddedEnv.records(ORDERING_TOPIC_TARGET)?.count())
         }
 
-        assertTrue(embeddedEnv.equalOrdering(ORDERING_TOPIC_SOURCE, ORDERING_TOPIC_TARGET),
-            "Partitions should be equal ordered")
+        assertTrue(
+            embeddedEnv.equalOrdering(ORDERING_TOPIC_SOURCE, ORDERING_TOPIC_TARGET),
+            "Partitions should be equal ordered"
+        )
 
         aivia.shutdown()
     }
@@ -111,7 +111,7 @@ class KafkaTest {
             assertFalse(aivia.isAlive(), "Mirroring should not be alive after shutdown")
         }
     }
-
+    
     private fun Map<String, Any?>.asProperties(): Properties = Properties().apply { putAll(this@asProperties) }
 
 }
