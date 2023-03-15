@@ -1,5 +1,8 @@
+import org.cyclonedx.gradle.CycloneDxTask
+
 plugins {
     kotlin("jvm") version "1.8.10"
+    id("org.cyclonedx.bom") version "1.7.4"
 }
 
 repositories {
@@ -15,6 +18,9 @@ val log4jVersion = "2.20.0"
 val micrometerVersion = "1.10.5"
 val prometheusVersion = "0.16.0"
 val slf4jVersion = "1.7.30"
+
+group = "io.nais"
+version = "generatedlater"
 
 dependencies {
     implementation(platform(kotlin("bom")))
@@ -51,34 +57,41 @@ java {
     targetCompatibility = JavaVersion.VERSION_17
 }
 
-tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-    kotlinOptions.jvmTarget = "17"
-}
-
-tasks.named<Jar>("jar") {
-    archiveBaseName.set("app")
-
-    manifest {
-        attributes["Main-Class"] = "io.ktor.server.netty.EngineMain"
-        attributes["Class-Path"] = configurations.runtimeClasspath.get().joinToString(separator = " ") {
-            it.name
+tasks {
+    withType<Test> {
+        useJUnitPlatform()
+        testLogging {
+            events("passed", "skipped", "failed")
+            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+            showStandardStreams = true
         }
     }
 
-    doLast {
-        configurations.runtimeClasspath.get().forEach {
-            val file = File("$buildDir/libs/${it.name}")
-            if (!file.exists())
-                it.copyTo(file)
-        }
+    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        kotlinOptions.jvmTarget = "17"
     }
-}
 
-tasks.withType<Test> {
-    useJUnitPlatform()
-    testLogging {
-        events("passed", "skipped", "failed")
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-        showStandardStreams = true
+    withType<CycloneDxTask> {
+        setOutputFormat("json")
+        setIncludeLicenseText(false)
+    }
+
+    named<Jar>("jar") {
+        archiveFileName.set("app.jar")
+
+        manifest {
+            attributes["Main-Class"] = "io.ktor.server.netty.EngineMain"
+            attributes["Class-Path"] = configurations.runtimeClasspath.get().joinToString(separator = " ") {
+                it.name
+            }
+        }
+
+        doLast {
+            configurations.runtimeClasspath.get().forEach {
+                val file = File("$buildDir/libs/${it.name}")
+                if (!file.exists())
+                    it.copyTo(file)
+            }
+        }
     }
 }
