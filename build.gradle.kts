@@ -73,7 +73,7 @@ tasks {
 
     withType<CycloneDxTask> {
         setOutputFormat("json")
-        setIncludeLicenseText(false)
+        setIncludeLicenseText(false) 
     }
 
     named<Jar>("jar") {
