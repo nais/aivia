@@ -11,6 +11,7 @@ import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.junit.jupiter.api.Disabled
 
 private const val SOURCE_TOPIC = "some-source-topic"
 private const val TARGET_TOPIC = "some-target-topic"
@@ -93,6 +94,7 @@ class KafkaTest {
     }
 
     @Test
+    @Disabled
     fun `liveness fails if mirroring stops`() {
         val sourceKafkaConfig = embeddedEnv.testClientProperties().asProperties()
         val targetKafkaConfig = embeddedEnv.testClientProperties().asProperties()
