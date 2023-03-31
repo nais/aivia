@@ -26,8 +26,8 @@ jobs:
           "restore-keys": "${{ runner.os }}-gradle-"
       - uses: "actions/setup-java@5ffc13f4174014e2d4d4572b3d74c3fa61aeb2c2" # ratchet:actions/setup-java@v3
         with:
-          "java-version": "17"
-          "distribution": "zulu"
+          "java-version": "19"
+          "distribution": "temurin"
       - name: "compile and run tests"
         run: "./gradlew build"
       - uses: nais/platform-build-push-sign@main
