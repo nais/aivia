@@ -1,13 +1,13 @@
 name: "Build and deploy aivia"
 on:
   push:
-    branches:
-      - main
     paths-ignore:
       - "*.md"
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
 jobs:
   build:
     name: "build"
