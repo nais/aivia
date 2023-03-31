@@ -8,8 +8,6 @@ on:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
-env:
-  BASEIMAGE: "ghcr.io/${{ github.repository }}"
 jobs:
   build:
     name: "build"
@@ -32,47 +30,15 @@ jobs:
           "distribution": "zulu"
       - name: "compile and run tests"
         run: "./gradlew build"
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@e81a89b1732b9c48d79cd809d8d81d79c4647a18 # ratchet:docker/setup-qemu-action@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@4b4e9c3e2d4531116a6f8ba8e71fc6e2cb6e6c8c # ratchet:docker/setup-buildx-action@v2
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # ratchet:docker/login-action@v2
+      - uses: nais/platform-build-push-sign@main
+        id: build-push-sign
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Docker meta
-        id: metadata
-        uses: docker/metadata-action@507c2f2dc502c992ad446e3d7a5dfbe311567a96 # ratchet:docker/metadata-action@v4
-        with:
-          images: ${{ env.BASEIMAGE }}
-          tags: |
-            type=raw,value={{date 'YYYYMMDDhhmmss'}}-{{sha}}
-            type=raw,value=latest
-      - name: Build and push
-        id: build-push
-        uses: docker/build-push-action@3b5e8027fcad23fda98b2e3ac259d8d67585f671 # ratchet:docker/build-push-action@v4
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: ${{ github.ref == 'refs/heads/main' }}
-          tags: ${{ steps.metadata.outputs.tags }}
-          labels: ${{ steps.metadata.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-      - name: Install cosign
-        uses: sigstore/cosign-installer@8348525c79cd67509c593a9352954618bdc3a862 # ratchet:sigstore/cosign-installer@main
-        with:
-          cosign-release: 'v2.0.0'
-      - name: Sign the container image
-        run: cosign sign --yes ${{ env.BASEIMAGE }}@${{ steps.build-push.outputs.digest }}
-      - name: Create SBOM
-        run: ./gradlew cyclonedxBom
-      - name: Attest image
-        run: cosign attest --yes --predicate build/reports/bom.json --type cyclonedx ${{ env.BASEIMAGE }}@${{ steps.build-push.outputs.digest }}
+          name: aivia
+          google_service_account: gh-aivia
+          push: ${{ github.actor != 'dependabot[bot]' && github.ref == 'refs/heads/main' }}
+          workload_identity_provider: ${{ secrets.NAIS_IO_WORKLOAD_IDENTITY_PROVIDER }}
     outputs:
-      image: "${{ fromJSON(steps.metadata.outputs.json).tags[0] }}"
+      image: "${{ steps.build-push-sign.outputs.tag }}"
   deploy:
     name: "deploy for testing"
     if: github.ref == 'refs/heads/main'
