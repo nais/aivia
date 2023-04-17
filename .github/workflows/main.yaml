@@ -14,7 +14,6 @@ jobs:
     runs-on: "ubuntu-latest"
     permissions:
       contents: read
-      packages: write
       id-token: write
     steps:
       - uses: "actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab" # ratchet:actions/checkout@v3
@@ -24,9 +23,15 @@ jobs:
           "path": "~/.gradle/caches"
           "key": "${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts') }}"
           "restore-keys": "${{ runner.os }}-gradle-"
+      - name: Install cosign
+        uses: sigstore/cosign-installer@c3667d99424e7e6047999fb6246c0da843953c65 # ratchet:sigstore/cosign-installer@main
+        with:
+          cosign-release: 'v2.0.0'
+      - name: Verify distroless base image
+        run: cosign verify --certificate-identity "https://github.com/chainguard-images/images/.github/workflows/release.yaml@refs/heads/main"  --certificate-oidc-issuer "https://token.actions.githubusercontent.com" cgr.dev/chainguard/jre:openjdk-jre-17
       - uses: "actions/setup-java@5ffc13f4174014e2d4d4572b3d74c3fa61aeb2c2" # ratchet:actions/setup-java@v3
         with:
-          "java-version": "19"
+          "java-version": "17"
           "distribution": "temurin"
       - name: "compile and run tests"
         run: "./gradlew build"
