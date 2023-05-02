@@ -43,7 +43,7 @@ dependencies {
     implementation("com.vlkan.log4j2:log4j2-logstash-layout-fatjar:1.0.5")
 
     testImplementation("org.awaitility:awaitility:4.2.0")
-    testImplementation("org.amshove.kluent:kluent:1.72")
+    testImplementation("org.amshove.kluent:kluent:1.73")
     testImplementation("no.nav:kafka-embedded-env:$kafkaVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
