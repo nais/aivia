@@ -53,7 +53,7 @@ jobs:
     needs: build
     steps:
       - uses: "actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9" # ratchet:actions/checkout@v3
-      - uses: nais/deploy/actions/deploy@e364e3d77ff1bee061d4607287376905a1321efd # ratchet:nais/deploy/actions/deploy@v1
+      - uses: nais/deploy/actions/deploy@e8018ed64076dd75b242eab61fd902bc6fc3cdc2 # ratchet:nais/deploy/actions/deploy@v1
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: dev-gcp
