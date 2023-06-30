@@ -14,6 +14,7 @@ import kotlin.test.assertTrue
 
 private const val SOURCE_TOPIC = "some-source-topic"
 private const val TARGET_TOPIC = "some-target-topic"
+private val SHUTDOWN_TIMEOUT = Duration.ofSeconds(5)
 private val THIRTY_SECONDS = Duration.ofSeconds(30)
 
 private const val ORDERING_TOPIC_TARGET = "orderingtopic_target"
@@ -46,7 +47,7 @@ class KafkaTest {
         val records = listOf("x", "y", "z")
         embeddedEnv.produceToTopic(SOURCE_TOPIC, records)
 
-        aivia.run()
+        aivia.run(SHUTDOWN_TIMEOUT)
 
         await().atMost(THIRTY_SECONDS).untilAsserted {
             assertTrue(embeddedEnv.records(TARGET_TOPIC).values.containsAll(records), "first batch mirrored")
@@ -76,7 +77,7 @@ class KafkaTest {
         ).asProperties()
 
         val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
-        aivia.run()
+        aivia.run(SHUTDOWN_TIMEOUT)
 
         embeddedEnv.produceToTopic(ORDERING_TOPIC_SOURCE, (0..68).map { it.toString() })
 
@@ -101,7 +102,7 @@ class KafkaTest {
         ).asProperties()
 
         val aivia = Aivia(sourceKafkaConfig, targetKafkaConfig, mappingConfig)
-        aivia.run()
+        aivia.run(SHUTDOWN_TIMEOUT)
 
         assertTrue(aivia.isAlive(), "Mirroring should be alive")
 

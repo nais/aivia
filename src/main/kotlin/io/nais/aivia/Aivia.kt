@@ -27,11 +27,11 @@ class Aivia(
     private var coroutineScope: CoroutineScope? = null
     private val logger = LoggerFactory.getLogger(this::class.java)
 
-    fun run() {
+    fun run(shutdownTimeout: Duration) {
         @OptIn(DelicateCoroutinesApi::class)
         currentJob = GlobalScope.launch {
             coroutineScope = this
-            mirror()
+            mirror(shutdownTimeout)
         }
     }
 
@@ -39,7 +39,7 @@ class Aivia(
         return currentJob?.isActive ?: false
     }
 
-    fun mirror() {
+    fun mirror(shutdownTimeout: Duration) {
         val sourceTopics = mappingConfig.keys.map { it.toString() }.toList()
         logger.info("Consuming from topics: $sourceTopics")
 
@@ -77,7 +77,11 @@ class Aivia(
                         logger.info("-> Mirrored $count records from source topic $topic")
                     }
                 }
-                logger.warn("Completed never-ending loop")
+                logger.info("Closing producer with $shutdownTimeout timeout")
+                producer.close(shutdownTimeout)
+                logger.info("Closing consumer with $shutdownTimeout timeout")
+                consumer.close(shutdownTimeout)
+                logger.info("Completed never-ending loop")
             }
         }
     }

@@ -17,7 +17,10 @@ import io.prometheus.client.CollectorRegistry
 import io.prometheus.client.Gauge
 import org.apache.kafka.common.utils.Exit.addShutdownHook
 import java.io.FileInputStream
+import java.time.Duration
 import java.util.*
+
+private val THIRTY_SECONDS = Duration.ofSeconds(30)
 
 fun main(args: Array<String>) {
     EngineMain.main(args)
@@ -31,7 +34,7 @@ fun Application.module() {
         mappingConfigFrom(this.environment.config)
     ).also {
         addShutdownHook("Aivia") { it.shutdown() }
-        it.run()
+        it.run(THIRTY_SECONDS)
         install(Routing) {
             nais(it)
         }
