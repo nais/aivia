@@ -11,7 +11,7 @@ repositories {
     maven("https://packages.confluent.io/maven")
 }
 
-val junitJupiterVersion = "5.9.3"
+val junitJupiterVersion = "5.10.0"
 val kafkaVersion = "2.8.1"
 val ktorVersion = "2.3.2"
 val log4jVersion = "2.20.0"
