@@ -1,4 +1,4 @@
-FROM cgr.dev/chainguard/jre:openjdk-jre-17
+FROM gcr.io/distroless/java17-debian11:nonroot
 
 COPY build/libs/*.jar /app/
 
