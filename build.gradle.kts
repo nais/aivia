@@ -2,7 +2,7 @@ import org.cyclonedx.gradle.CycloneDxTask
 
 plugins {
     kotlin("jvm") version "1.9.20"
-    id("org.cyclonedx.bom") version "1.8.0"
+    id("org.cyclonedx.bom") version "1.8.1"
 }
 
 repositories {
