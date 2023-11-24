@@ -7,4 +7,4 @@ metadata:
     team: aura
 data:
   topic_mapping.properties: |
-    aivia-test-source = aura.aivia-test
+    nais-verification.kafka-canary-dev-gcp = aura.aivia-test

@@ -27,8 +27,8 @@ spec:
   env:
     - name: LOG_FORMAT
       value: logstash
-  envFrom:
-    - secret: aivia-kafka-on-prem
+    - name: AIVIA_SOURCE
+      value: aiven
   filesFrom:
     - configmap: aivia-topic-mapping
   kafka:
