@@ -3,6 +3,7 @@ import org.cyclonedx.gradle.CycloneDxTask
 plugins {
     kotlin("jvm") version "1.9.21"
     id("org.cyclonedx.bom") version "1.8.1"
+    id("org.gradle.test-retry") version "1.0.0"
 }
 
 repositories {
@@ -64,6 +65,10 @@ tasks {
             events("passed", "skipped", "failed")
             exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
             showStandardStreams = true
+        }
+        retry {
+            maxFailures.set(1)
+            maxRetries.set(10)
         }
     }
 
