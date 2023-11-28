@@ -3,7 +3,7 @@ import org.cyclonedx.gradle.CycloneDxTask
 plugins {
     kotlin("jvm") version "1.9.21"
     id("org.cyclonedx.bom") version "1.8.1"
-    id("org.gradle.test-retry") version "1.5.6"
+    id("org.gradle.test-retry") version "1.5.7"
 }
 
 repositories {
