@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: "actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11" # ratchet:actions/checkout@v3
       - uses: "gradle/wrapper-validation-action@699bb18358f12c5b78b37bb0111d3a0e2276e0e2" # ratchet:gradle/wrapper-validation-action@v1
-      - uses: "actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2" # ratchet:actions/cache@v3
+      - uses: "actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319" # ratchet:actions/cache@v3
         with:
           "path": "~/.gradle/caches"
           "key": "${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle.kts') }}"
