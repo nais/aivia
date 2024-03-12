@@ -2,9 +2,9 @@ apiVersion: "nais.io/v1alpha1"
 kind: "Application"
 metadata:
   name: "aivia-test"
-  namespace: "aura"
+  namespace: "nais"
   labels:
-    team: "aura"
+    team: "nais"
 spec:
   image: {{image}}
   liveness:

@@ -2,9 +2,9 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: aivia-topic-mapping
-  namespace: aura
+  namespace: nais
   labels:
-    team: aura
+    team: nais
 data:
   topic_mapping.properties: |
-    nais-verification.kafka-canary-dev-gcp = aura.aivia-test
+    nais-verification.kafka-canary-dev-gcp = nais.aivia-test
