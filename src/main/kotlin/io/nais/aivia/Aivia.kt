@@ -36,7 +36,15 @@ class Aivia(
     }
 
     fun isAlive(): Boolean {
-        return currentJob?.isActive ?: false
+        val isAlive = currentJob?.isActive ?: false
+        if (logger.isDebugEnabled) {
+            if (isAlive) {
+                logger.debug("I'm alive!")
+            } else {
+                logger.debug("Uh oh! I'm dead!")
+            }
+        }
+        return isAlive
     }
 
     fun mirror(shutdownTimeout: Duration) {

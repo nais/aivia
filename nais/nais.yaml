@@ -28,6 +28,8 @@ spec:
   env:
     - name: LOG_FORMAT
       value: logstash
+    - name: LOG_LEVEL
+      value: DEBUG
     - name: AIVIA_SOURCE
       value: aiven
   filesFrom:
