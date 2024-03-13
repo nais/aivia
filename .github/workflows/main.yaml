@@ -17,7 +17,7 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: "actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11" # ratchet:actions/checkout@v3
+      - uses: "actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633" # ratchet:actions/checkout@v3
       - uses: "gradle/wrapper-validation-action@699bb18358f12c5b78b37bb0111d3a0e2276e0e2" # ratchet:gradle/wrapper-validation-action@v1
       - uses: "actions/cache@ab5e6d0c87105b4c9c2047343972218f562e4319" # ratchet:actions/cache@v3
         with:
@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
-      - uses: "actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11" # ratchet:actions/checkout@v3
+      - uses: "actions/checkout@9bb56186c3b09b4f86b1c65136769dd318469633" # ratchet:actions/checkout@v3
       - uses: nais/deploy/actions/deploy@v2 # ratchet:exclude
         env:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
