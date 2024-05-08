@@ -1,7 +1,7 @@
 import org.cyclonedx.gradle.CycloneDxTask
 
 plugins {
-    kotlin("jvm") version "1.9.23"
+    kotlin("jvm") version "1.9.24"
     id("org.cyclonedx.bom") version "1.8.2"
     id("org.gradle.test-retry") version "1.5.8"
 }
