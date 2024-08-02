@@ -88,7 +88,7 @@ tasks {
 
         doLast {
             configurations.runtimeClasspath.get().forEach {
-                val file = File("$buildDir/libs/${it.name}")
+                val file = layout.buildDirectory.dir("libs").get().file(it.name).asFile
                 if (!file.exists())
                     it.copyTo(file)
             }
