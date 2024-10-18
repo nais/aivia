@@ -16,7 +16,7 @@ val junitJupiterVersion = "5.11.2"
 val kafkaVersion = "2.8.1"
 val ktorVersion = "2.3.12"
 val log4jVersion = "2.24.1"
-val micrometerVersion = "1.12.5"
+val micrometerVersion = "1.13.6"
 val prometheusVersion = "0.16.0"
 val slf4jVersion = "1.7.30"
 
@@ -35,7 +35,7 @@ dependencies {
     implementation("io.ktor:ktor-client-serialization-jvm:$ktorVersion")
     implementation("io.ktor:ktor-client-json:$ktorVersion")
     implementation("io.prometheus:simpleclient:$prometheusVersion")
-    implementation("io.micrometer:micrometer-registry-prometheus:$micrometerVersion")
+    implementation("io.micrometer:micrometer-registry-prometheus-simpleclient:$micrometerVersion")
     implementation("org.apache.kafka:kafka-clients:$kafkaVersion")
     implementation("org.slf4j:slf4j-api:$slf4jVersion")
     implementation("org.apache.logging.log4j:log4j-api:$log4jVersion")
