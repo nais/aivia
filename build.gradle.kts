@@ -16,7 +16,7 @@ val junitJupiterVersion = "5.11.3"
 val kafkaVersion = "2.8.1"
 val ktorVersion = "2.3.12"
 val log4jVersion = "2.24.1"
-val micrometerVersion = "1.13.6"
+val micrometerVersion = "1.14.0"
 val prometheusVersion = "0.16.0"
 val slf4jVersion = "1.7.30"
 
