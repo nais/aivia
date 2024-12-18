@@ -18,7 +18,7 @@ jobs:
       id-token: write
     steps:
       - uses: "actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683" # ratchet:actions/checkout@v3
-      - uses: "gradle/actions/wrapper-validation@473878a77f1b98e2b5ac4af93489d1656a80a5ed" # ratchet:gradle/actions/wrapper-validation@v3
+      - uses: "gradle/actions/wrapper-validation@0bdd871935719febd78681f197cd39af5b6e16a6" # ratchet:gradle/actions/wrapper-validation@v3
       - uses: "actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57" # ratchet:actions/cache@v3
         with:
           "path": "~/.gradle/caches"
