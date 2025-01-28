@@ -14,7 +14,7 @@ repositories {
 
 val junitJupiterVersion = "5.11.4"
 val kafkaVersion = "2.8.2"
-val ktorVersion = "2.3.13"
+val ktorVersion = "3.0.3"
 val log4jVersion = "2.24.3"
 val micrometerVersion = "1.14.3"
 val prometheusVersion = "0.16.0"
