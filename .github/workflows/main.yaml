@@ -30,7 +30,7 @@ jobs:
           cosign-release: 'v2.2.1'
       - name: Verify distroless base image
         run: cosign verify --certificate-identity "keyless@distroless.iam.gserviceaccount.com" --certificate-oidc-issuer "https://accounts.google.com" gcr.io/distroless/java21-debian12:nonroot
-      - uses: "actions/setup-java@7a6d8a8234af8eb26422e24e3006232cccaa061b" # ratchet:actions/setup-java@v3
+      - uses: "actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12" # ratchet:actions/setup-java@v3
         with:
           "java-version": "21"
           "distribution": "temurin"
